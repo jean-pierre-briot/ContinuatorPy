@@ -4,7 +4,7 @@
 # -*- coding: Unicode -*-
 
 # Continuator in Python
-# Version 1.2
+# Version 1.3
 # Versions/dates: last: 20/03/2025; first: 27/02/2025
 # monophonic, batch or real-time mode, richer state/viewpoint (note/pitch, duration, velocity), transposition, tolerance matching
 # Jean-Pierre Briot
