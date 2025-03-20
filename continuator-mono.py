@@ -6,7 +6,7 @@
 # Continuator in Python
 # Version 1.2
 # monophonic, batch or real-time mode, richer state/viewpoint (note/pitch, duration, velocity), transposition, tolerance matching
-# 27/02/2025
+# 20/03/2025; 27/02/2025
 # Jean-Pierre Briot
 
 # This is a reimplementation in Python of the Continuator from François Pachet.
