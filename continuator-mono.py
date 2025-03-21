@@ -21,14 +21,20 @@ import rtmidi
 import mido
 from mido import MidiFile, MidiTrack, Message, open_input, open_output, get_input_names, get_output_names
 
+# constants
+_min_midi_pitch = 0
+_max_midi_pitch = 128
+
 #hyperparameters
 _silence_threshold = 2.0					# Silence duration after which Continuator will start train and generate
 _max_continuation_length = 60			# Maximum number of notes of a continuation
 _max_played_notes_considered = 30		    # Maximum last number of played notes considered for training
 _default_generated_note_duration = 0.5	    # Default duration for generated notes (for batch test)
 _default_generated_note_velocity = 64		# Default velocity for generated notes (for batch test)
-_key_transposition_mode = True			    # Transposition into 12 keys/tonalities
-_octave_transposition_number = 0		    # Transposition into N octaves below and above (within the MIDI pitch note range)
+_key_transposition_semi-tones = 6			# Transposition into N semitones above and N-1 below. If N = 6, this corresponds to a full transposition into the other 11 keys.
+                                            # If N = 0, there is no transposition.
+                                            # If N >> 6, this corresponds to also transposition into octaves.
+                                            # N will be truncated by the max and min MIDI pitch values, thus N is arbitrary
 _first_continuation_default_random_generation_mode = True   # Random generation (among continuations) if first note generation fails
 _general_default_random_generation_mode = False             # Random generation (among continuations) if any note generation fails
 _match_pitch_interval_tolerance = 4         # Tolerance (semi-tones below and above) for matching pitch between node and note
@@ -86,28 +92,16 @@ class PrefixTreeContinuator:                # The main class and corresponding a
     def train(self, note_sequence):         # Main entry function lo train the Continuator with a sequence of notes
                                             # note_sequence = [(<pitch_1>, <duration_1>, <velocity_#), ... , (<pitch_N>, <duration_N>, <velocity_N>)]
         self.internal_train_without_key_transpose(note_sequence)    # Train with input sequence
-        if _key_transposition_mode:
-            for i in range(-5, 0):
-                self.internal_train_without_key_transpose(self.transpose(note_sequence, i))
-            for i in range(1, 7):
-                self.internal_train_without_key_transpose(self.transpose(note_sequence, i))
-
-    def internal_train_without_key_transpose(self, note_sequence):
-        self.internal_train_without_any_transpose(note_sequence)
-        if _octave_transposition_number > 0:
-            note_pitch_sequence = []
-            for note in note_sequence:
-                note_pitch_sequence.append(note.pitch)
-            max_pitch = max(note_pitch_sequence)
+        if _key_transposition_semi-tones > 0:
+            pitch_sequence = pitch_sequence_from_note_sequence(note_sequence)
+            down_iterationw_number = min(min(note_pitch_sequence) - _min_midi_pitch, _key_transposition_semi-tones - 1)
+            up_iterationw_number = min(_max_midi_pitch - max(note_pitch_sequence), _key_transposition_semi-tones)
             i = 1
-            while i <= _octave_transposition_number and max_pitch + (i * 12) <= 128:
-                self.internal_train_without_any_transpose(self.transpose(note_sequence, i * 12))
-                i += 1
-            min_pitch = min(note_pitch_sequence)
-            i = -1
-            while i <= _octave_transposition_number and min_pitch + (i * 12) >= 0:
-                self.internal_train_without_any_transpose(self.transpose(note_sequence, i * 12))
-                i += -1
+            while i <= down_iteration_number:
+                self.internal_train_without_key_transpose(self.transpose(note_sequence, -i)
+            i = 1
+            while i <= up_iterations_number:
+                self.internal_train_without_key_transpose(self.transpose(note_sequence, i)
  
     @staticmethod
     def transpose(note_sequence, t):
@@ -117,9 +111,9 @@ class PrefixTreeContinuator:                # The main class and corresponding a
             transposed_note_sequence.append(new_note)
         return transposed_note_sequence
 
-    def internal_train_without_any_transpose(self, note_sequence):  # Main internal train function
+    def internal_train_without_key_transpose(self, note_sequence):  # Main internal train function
         if not self.root_dictionary and len(note_sequence) <= 1:
-            raise RuntimeError('Only one note initially played, thus no continuation may be learnt and therefore generated')
+            raise RuntimeError('Only one note initially played, thus none continuation can be learnt and therefore generated')
         i = len(note_sequence) - 1                                  # index of the last item of the played note sequence
         while i > 0:
                                                                     # i will vary from length-1 (note_N-1) to 0 (note_1)
