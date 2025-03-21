@@ -31,7 +31,7 @@ _max_continuation_length = 60			# Maximum number of notes of a continuation
 _max_played_notes_considered = 30		    # Maximum last number of played notes considered for training
 _default_generated_note_duration = 0.5	    # Default duration for generated notes (for batch test)
 _default_generated_note_velocity = 64		# Default velocity for generated notes (for batch test)
-_key_transposition_semi-tones = 6			# Transposition into N semitones above and N-1 below. If N = 6, this corresponds to a full transposition into the other 11 keys.
+_key_transposition_semi_tones = 6			# Transposition into N semitones above and N-1 below. If N = 6, this corresponds to a full transposition into the other 11 keys.
                                             # If N = 0, there is no transposition.
                                             # If N >> 6, this corresponds to also transposition into octaves.
                                             # N will be truncated by the max and min MIDI pitch values, thus N is arbitrary
@@ -92,17 +92,19 @@ class PrefixTreeContinuator:                # The main class and corresponding a
     def train(self, note_sequence):         # Main entry function lo train the Continuator with a sequence of notes
                                             # note_sequence = [(<pitch_1>, <duration_1>, <velocity_#), ... , (<pitch_N>, <duration_N>, <velocity_N>)]
         self.internal_train_without_key_transpose(note_sequence)    # Train with input sequence
-        if _key_transposition_semi-tones > 0:
-            pitch_sequence = pitch_sequence_from_note_sequence(note_sequence)
-            down_iterationw_number = min(min(note_pitch_sequence) - _min_midi_pitch, _key_transposition_semi-tones - 1)
-            up_iterationw_number = min(_max_midi_pitch - max(note_pitch_sequence), _key_transposition_semi-tones)
+        if _key_transposition_semi_tones > 0:
+            note_pitch_sequence = pitch_sequence_from_note_sequence(note_sequence)
+            down_iterations_number = min(min(note_pitch_sequence) - _min_midi_pitch, _key_transposition_semi_tones - 1)
+            up_iterations_number = min(_max_midi_pitch - max(note_pitch_sequence), _key_transposition_semi_tones)
             i = 1
-            while i <= down_iteration_number:
-                self.internal_train_without_key_transpose(self.transpose(note_sequence, -i)
+            while i <= down_iterations_number:
+                self.internal_train_without_key_transpose(self.transpose(note_sequence, -i))
+                i += 1
             i = 1
             while i <= up_iterations_number:
-                self.internal_train_without_key_transpose(self.transpose(note_sequence, i)
- 
+                self.internal_train_without_key_transpose(self.transpose(note_sequence, i))
+                i += 1
+
     @staticmethod
     def transpose(note_sequence, t):
         transposed_note_sequence = []
