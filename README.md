@@ -9,8 +9,12 @@ https://web.media.mit.edu/~rebklein/downloads/papers/jnmr%25252E32%25252E3%25252
 I thank François for his continuous feedback.
 
 You need at first to import (download and install) the following additional (non default) Python libraries, with the corresponding commands:
+
 time      python3 -m pip install time
+
 mido      python3 -m pip install mido
+
+time      python3 -m pip install python-rtmidi
 
 You also need some physical MIDI interface (and maybe to configurate it on your computer) for some instrument (e.g., a keyboard, or any MIDI-enabled instrument).
 
@@ -23,5 +27,6 @@ Please enjoy and any feedback welcome!
 
 jean-pierre
 
-PS: As soon as I will have some availability again, I intend to complete the polyphonic version. (It is more tricky because considering and identifying chords). And continue to extend and test the model.
-The polyphonic version will be made available on the repository Continuator-Poly.
+PS: As soon as I will have some availability again, I intend to complete the polyphonic version.
+
+
