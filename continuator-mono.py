@@ -327,7 +327,6 @@ class PrefixTreeContinuator:                # The main class and corresponding a
             current_time = 0
             for note in note_sequence:
                 track.append(Message('note_on', time=current_time, note=note.pitch, velocity=note.velocity))
-                current_time += note.duration
                 track.append(Message('note_off', time=current_time, note=note.pitch, velocity=note.velocity))
             midi_file.save(midi_file_name)
 
