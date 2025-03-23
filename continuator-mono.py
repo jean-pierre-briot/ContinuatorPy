@@ -24,37 +24,43 @@ from mido import MidiFile, MidiTrack, Message, open_input, open_output, get_inpu
 # constants
 _min_midi_pitch = 0
 _max_midi_pitch = 128
+_max_midi_velocity = 64
 
 #hyperparameters
 _silence_threshold = 2.0					# Silence duration after which Continuator will start train and generate
 _max_continuation_length = 60			# Maximum number of notes of a continuation
 _max_played_notes_considered = 30		    # Maximum last number of played notes considered for training
 _default_generated_note_duration = 0.5	    # Default duration for generated notes (for batch test)
-_default_generated_note_velocity = 64		# Default velocity for generated notes (for batch test)
+_default_generated_note_velocity = _max_midi_velocity   # Default velocity for generated notes (for batch test)
 _key_transposition_semi_tones = 6			# Transposition into N semitones above and N-1 below. If N = 6, this corresponds to a full transposition into the other 11 keys.
                                             # If N = 0, there is no transposition.
                                             # If N >> 6, this corresponds to also transposition into octaves.
                                             # N will be truncated by the max and min MIDI pitch values, thus N is arbitrary
 _first_continuation_default_random_generation_mode = True   # Random generation (among continuations) if first note generation fails
 _general_default_random_generation_mode = False             # Random generation (among continuations) if any note generation fails
-_match_pitch_interval_tolerance = 4         # Tolerance (semi-tones below and above) for matching pitch between node and note
+_match_tolerance_list = [{'pitch': 0, 'duration': .1, 'velocity': 10}, {'pitch': 2, 'duration': .2, 'velocity': 15}, {'pitch': 4, 'duration': .4, 'velocity': 30}]   # Tolerance (semi-tones below and above) for matching pitch between node and note
 _generation_duration_mode = 'Learnt'        # 3 possible modes for the durations of the continuation notes:
                                             # Learnt: duration of the corresponding matching note learnt,
                                             # Played: duration of the notes played
                                             # Fixed: fixed (_default_fixed_duration) duration
 _default_fixed_duration = 0.1               # int in case of 'File' (Midi export) mode
-_pitch_binning = 1
-_duration_binning = 1
-_velocity_binning = 1
 
 class Note:                                 # Structure of a note
     def __init__(self, pitch, duration, velocity):
         self.pitch = pitch
         self.duration = duration
         self.velocity = velocity
-        self.binned_pitch = None
-        self.binned_duration = None
-        self.binned_velocity = None
+
+    def match(self, note, match_tolerance_list):      # Check if current note characteristics (pitch, duration and velocity) is matching some other note characteristics within some tolerance(s)
+        print('match: self.pitch: ' + str(self.pitch) + ' note.pitch: ' + str(note.pitch) + ' match_tolerance_list: ' + str(match_tolerance_list))
+        if not match_tolerance_list:
+            return False
+        else:
+            return self.single_match(note, match_tolerance_list[0]) or self.match(note, match_tolerance_list[1:])
+
+    def single_match(self, note, match_tolerance_dict):
+        print('single_match: self.pitch: ' + str(self.pitch) + ' note.pitch: ' + str(note.pitch) + ' match_tolerance_dict: ' + str(match_tolerance_dict))
+        return (note.pitch - match_tolerance_dict['pitch'] <= self.pitch <= note.pitch + match_tolerance_dict['pitch']) and (note.duration - match_tolerance_dict['duration'] <= self.duration <= note.duration + match_tolerance_dict['duration']) and (note.velocity - match_tolerance_dict['velocity'] <= self.velocity <= note.velocity + match_tolerance_dict['velocity'])
 
 def note_sequence_to_pitch_sequence(note_sequence):
     pitch_sequence = []
@@ -74,9 +80,6 @@ class PrefixTreeNode:                       # Structure of a tree node to memori
         self.note = None
         self.children_list = None
         self.continuation_index_list = None
-
-    def match(self, note, tolerance):       # Check if current node characteristics (e.g., its corresponding note pitch) is matching some note characteristics (e.g., that note pitch)
-        return self.note.pitch in range(note.pitch - tolerance, note.pitch + tolerance + 1)
 
 class PrefixTreeContinuator:                # The main class and corresponding algorithms
     def __init__(self):
@@ -143,7 +146,7 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                 else:                                               # otherwise,
                     node_exists = False                             # we set up the initial value of a flag to know if we have found a matching node
                     for child_node in current_node.children_list:   # while iterating over the children
-                        if child_node.match(note, 0):               # This child (exactly) matches
+                        if child_node.note.match(note, _match_tolerance_list[:1]):     # This child (exactly) matches
                             child_node.continuation_index_list.append(self.continuation_dictionary_current_index)
                             node_exists = True
                             current_node = child_node               # Next iteration will be on the matching process on this child note
@@ -215,8 +218,7 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                                                                     # or b) j >= length of sequence of notes (i.e. we already parsed all notes of the input sequence)
                     matching_child = None                           # Assign a flag to know if we have found a matching node within children
                     for child in current_node.children_list:        # Iterate over children nodes to look for a node matching jth last note from input sequence
-                        if child.match(note_sequence[-j], _match_pitch_interval_tolerance):
-                                                                    # If one matches it (with default tolerance)
+                        if child.note.match(note_sequence[-j], _match_tolerance_list):       # If one matches it (with default tolerance)
                             matching_child = child                  # then, remember which it is
                             break                                   # and exit from this children iteration loop
                     if matching_child is None:                      # If none of the children matches it,
@@ -345,4 +347,4 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                 self.batch_test([[48, 50, 52, 53], [48, 50, 50, 52], [48, 50], [50, 48], [48]])
 
 continuator = PrefixTreeContinuator()
-continuator.run('Batch')
+continuator.run('RealTime')
