@@ -52,15 +52,13 @@ class Note:                                 # Structure of a note
         self.velocity = velocity
 
     def match(self, note, match_tolerance_list):      # Check if current note characteristics (pitch, duration and velocity) is matching some other note characteristics within some tolerance(s)
-        print('match: self.pitch: ' + str(self.pitch) + ' note.pitch: ' + str(note.pitch) + ' match_tolerance_list: ' + str(match_tolerance_list))
-        if not match_tolerance_list:
+         if not match_tolerance_list:
             return False
         else:
             return self.single_match(note, match_tolerance_list[0]) or self.match(note, match_tolerance_list[1:])
 
     def single_match(self, note, match_tolerance_dict):
-        print('single_match: self.pitch: ' + str(self.pitch) + ' note.pitch: ' + str(note.pitch) + ' match_tolerance_dict: ' + str(match_tolerance_dict))
-        return (note.pitch - match_tolerance_dict['pitch'] <= self.pitch <= note.pitch + match_tolerance_dict['pitch']) and (note.duration - match_tolerance_dict['duration'] <= self.duration <= note.duration + match_tolerance_dict['duration']) and (note.velocity - match_tolerance_dict['velocity'] <= self.velocity <= note.velocity + match_tolerance_dict['velocity'])
+         return (note.pitch - match_tolerance_dict['pitch'] <= self.pitch <= note.pitch + match_tolerance_dict['pitch']) and (note.duration - match_tolerance_dict['duration'] <= self.duration <= note.duration + match_tolerance_dict['duration']) and (note.velocity - match_tolerance_dict['velocity'] <= self.velocity <= note.velocity + match_tolerance_dict['velocity'])
 
 def note_sequence_to_pitch_sequence(note_sequence):
     pitch_sequence = []
