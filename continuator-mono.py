@@ -43,31 +43,31 @@ _generation_duration_mode = 'Learnt'        # 3 possible modes for the durations
                                             # Played: duration of the notes played
                                             # Fixed: fixed (_default_fixed_duration) duration
 _default_fixed_duration = 0.1               # int in case of 'File' (Midi export) mode
+_pitch_binning = 1
+_duration_binning = 1
+_velocity_binning = 1
 
 class Note:                                 # Structure of a note
     def __init__(self, pitch, duration, velocity):
         self.pitch = pitch
         self.duration = duration
         self.velocity = velocity
+        self.binned_pitch = None
+        self.binned_duration = None
+        self.binned_velocity = None
 
-def create_note_sequence(pitch_sequence):   # For Batch test
-    note_sequence = []
-    for pitch in pitch_sequence:
-        note = Note(pitch, _default_generated_note_duration, _default_generated_note_velocity)
-        note_sequence.append(note)
-    return note_sequence
-
-def pitch_sequence_from_note_sequence(note_sequence):
+def note_sequence_to_pitch_sequence(note_sequence):
     pitch_sequence = []
     for note in note_sequence:
         pitch_sequence.append(note.pitch)
     return pitch_sequence
 
-def current_note_on_tuple_pitch_list(current_note_on_tuple_list):
-        note_pitch_list = []
-        for note_tuple in current_note_on_tuple_list:
-            note_pitch_list.append(note_tuple[0])
-        return note_pitch_list
+def pitch_sequence_to_note_sequence(pitch_sequence):    # For Batch test
+    note_sequence = []
+    for pitch in pitch_sequence:
+        note = Note(pitch, _default_generated_note_duration, _default_generated_note_velocity)
+        note_sequence.append(note)
+    return note_sequence
 
 class PrefixTreeNode:                       # Structure of a tree node to memorize and index learnt sequences
     def __init__(self):
@@ -93,7 +93,7 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                                             # note_sequence = [(<pitch_1>, <duration_1>, <velocity_#), ... , (<pitch_N>, <duration_N>, <velocity_N>)]
         self.internal_train_without_key_transpose(note_sequence)    # Train with input sequence
         if _key_transposition_semi_tones > 0:
-            note_pitch_sequence = pitch_sequence_from_note_sequence(note_sequence)
+            note_pitch_sequence = note_sequence_to_pitch_sequence(note_sequence)
             down_iterations_number = min(min(note_pitch_sequence) - _min_midi_pitch, _key_transposition_semi_tones - 1)
             up_iterations_number = min(_max_midi_pitch - max(note_pitch_sequence), _key_transposition_semi_tones)
             i = 1
@@ -294,10 +294,10 @@ class PrefixTreeContinuator:                # The main class and corresponding a
 
     def batch_test(self, pitch_sequence_list):
         for pitch_sequence in pitch_sequence_list:
-            note_sequence = create_note_sequence(pitch_sequence)
+            note_sequence = pitch_sequence_to_note_sequence(pitch_sequence)
             self.train(note_sequence)
             self.display_memory()
-            print('Continuation generated: ' + str(pitch_sequence_from_note_sequence(continuator.generate(note_sequence))))
+            print('Continuation generated: ' + str(note_sequence_to_pitch_sequence(continuator.generate(note_sequence))))
 
     def read_midi_file(self, midi_file_name):
         midi_sequence = mido.MidiFile(midi_file_name)
@@ -345,4 +345,4 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                 self.batch_test([[48, 50, 52, 53], [48, 50, 50, 52], [48, 50], [50, 48], [48]])
 
 continuator = PrefixTreeContinuator()
-continuator.run('File')
+continuator.run('Batch')
