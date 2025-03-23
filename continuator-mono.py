@@ -28,8 +28,8 @@ _max_midi_velocity = 64
 
 #hyperparameters
 _silence_threshold = 2.0					# Silence duration after which Continuator will start train and generate
-_max_continuation_length = 60			# Maximum number of notes of a continuation
-_max_played_notes_considered = 30		    # Maximum last number of played notes considered for training
+_max_continuation_length = 30			    # Maximum number of notes of a continuation
+_max_played_notes_considered = 10		    # Maximum last number of played notes considered for training
 _default_generated_note_duration = 0.5	    # Default duration for generated notes (for batch test)
 _default_generated_note_velocity = _max_midi_velocity   # Default velocity for generated notes (for batch test)
 _key_transposition_semi_tones = 6			# Transposition into N semitones above and N-1 below. If N = 6, this corresponds to a full transposition into the other 11 keys.
