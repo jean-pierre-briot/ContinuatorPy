@@ -19,7 +19,7 @@ import random
 import time
 import rtmidi
 import mido
-from mido import MidiFile, MidiTrack, Message, open_input, open_output, get_input_names, get_output_names, second2tick
+from mido import MidiFile, MidiTrack, Message, open_input, open_output, get_input_names, get_output_names
 
 # constants
 _min_midi_pitch = 0
