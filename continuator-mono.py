@@ -19,7 +19,7 @@ import random
 import time
 import rtmidi
 import mido
-from mido import MidiFile, MidiTrack, Message, open_input, open_output, get_input_names, get_output_names
+from mido import MidiFile, MidiTrack, Message, open_input, open_output, get_input_names, get_output_names, second2tick
 
 # constants
 _min_midi_pitch = 0
@@ -324,10 +324,9 @@ class PrefixTreeContinuator:                # The main class and corresponding a
             midi_file = mido.MidiFile()
             track = MidiTrack()
             midi_file.tracks.append(track)
-            current_time = 0
             for note in note_sequence:
-                track.append(Message('note_on', time=current_time, note=note.pitch, velocity=note.velocity))
-                track.append(Message('note_off', time=current_time, note=note.pitch, velocity=note.velocity))
+                track.append(Message('note_on', time=0, note=note.pitch, velocity=note.velocity))
+                track.append(Message('note_off', time=int(note.duration), note=note.pitch, velocity=note.velocity))
             midi_file.save(midi_file_name)
 
     def run(self, mode):
@@ -346,4 +345,4 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                 self.batch_test([[48, 50, 52, 53], [48, 50, 50, 52], [48, 50], [50, 48], [48]])
 
 continuator = PrefixTreeContinuator()
-continuator.run('RealTime')
+continuator.run('File')
