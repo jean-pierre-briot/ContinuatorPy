@@ -327,7 +327,7 @@ class PrefixTreeContinuator:                # The main class and corresponding a
             case 'RealTime':
                 print('MIDI ports available: input: ' + str(mido.get_input_names()) + ' output: ' + str(mido.get_output_names()))  # Display of MIDI ports
                 input_port = mido.get_input_names()[0]
-                output_port = mido.get_output_names()[1]
+                output_port = mido.get_output_names()[0]
                 print('MIDI ports chosen: input: ' + str(input_port) + ' output: ' + str(output_port))  # Display of MIDI ports chosen
                 self.listen_and_continue(input_port, output_port)
             case 'File':
