@@ -17,9 +17,8 @@
 
 import random
 import time
-import rtmidi
 import mido
-from mido import MidiFile, MidiTrack, Message, open_input, open_output, get_input_names, get_output_names
+from mido import MidiTrack, Message, open_input, open_output, get_input_names, get_output_names
 
 # constants
 _min_midi_pitch = 0
@@ -154,7 +153,7 @@ class PrefixTreeContinuator:                # The main class and corresponding a
     def display_memory(self):
          print('Memory:')
          for dummy, root in self.root_dictionary.items():
-              self.display_tree(root, 0)
+              self.display_tree(node=root, level=0)
 
     def display_tree(self, node, level):
         indent = '  ' * level
@@ -245,9 +244,9 @@ class PrefixTreeContinuator:                # The main class and corresponding a
     @staticmethod
     def play_midi_note(port_name, note):
         with open_output(port_name) as output:
-            output.send(mido.Message('note_on', note = note.pitch, velocity = note.velocity))
+            output.send(mido.Message(type='note_on', note = note.pitch, velocity = note.velocity))
             time.sleep(note.duration)
-            output.send(mido.Message('note_off', note = note.pitch, velocity = note.velocity))
+            output.send(mido.Message(type='note_off', note = note.pitch, velocity = note.velocity))
 
     def listen_and_continue(self, input_port, output_port):
         with mido.open_input(input_port) as in_port, mido.open_output(output_port) as dummy:
@@ -263,7 +262,7 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                             continue
                         else:
                             self.continuation_sequence = []             # A new note has been played
-                            note = Note(event.note, None, event.velocity)
+                            note = Note(pitch=event.note, duration=None, velocity=event.velocity)
                             current_time = time.time()
                             self.current_note_on_dict[note.pitch] = (note, current_time)
                             self.played_notes.append(note)
@@ -301,7 +300,7 @@ class PrefixTreeContinuator:                # The main class and corresponding a
             for event in track:
                 current_time += event.time
                 if event.type == "note_on" and event.velocity > 0:
-                    note = Note(event.note, None, event.velocity)
+                    note = Note(pitch=event.note, duration=None, velocity=event.velocity)
                     note_sequence.append(note)
                     if note.pitch in self.current_note_on_dict:
                         print('Warning: Note ' + str(note.pitch) + ' has been repeated before being ended')
@@ -318,8 +317,8 @@ class PrefixTreeContinuator:                # The main class and corresponding a
             track = MidiTrack()
             midi_file.tracks.append(track)
             for note in note_sequence:
-                track.append(Message('note_on', time=0, note=note.pitch, velocity=note.velocity))
-                track.append(Message('note_off', time=int(note.duration), note=note.pitch, velocity=note.velocity))
+                track.append(Message(type='note_on', time=0, note=note.pitch, velocity=note.velocity))
+                track.append(Message(type='note_off', time=int(note.duration), note=note.pitch, velocity=note.velocity))
             midi_file.save(midi_file_name)
 
     def run(self, mode):
