@@ -338,5 +338,5 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                 self.batch_test([[48, 50, 52, 53], [48, 50, 50, 52], [48, 50], [50, 48], [48]])
 
 continuator = PrefixTreeContinuator()
-# continuator.run('Batch')
-continuator.run('RealTime')
+continuator.run('File')
+
