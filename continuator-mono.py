@@ -242,14 +242,13 @@ class PrefixTreeContinuator:                # The main class and corresponding a
         return self.continuation_sequence
 
     @staticmethod
-    def play_midi_note(port_name, note):
-        with open_output(port_name) as output:
-            output.send(mido.Message(type='note_on', note = note.pitch, velocity = note.velocity))
-            time.sleep(note.duration)
-            output.send(mido.Message(type='note_off', note = note.pitch, velocity = note.velocity))
+    def play_midi_note(port, note):
+        out_port.send(mido.Message(type='note_on', note = note.pitch, velocity = note.velocity))
+        time.sleep(note.duration)
+        out_port.send(mido.Message(type='note_off', note = note.pitch, velocity = note.velocity))
 
     def listen_and_continue(self, input_port, output_port):
-        with mido.open_input(input_port) as in_port, mido.open_output(output_port) as dummy:
+        with open_input(input_port) as in_port, open_output(output_port) as out_port:
             print('Currently listening on ' + str(input_port))
             self.continuation_sequence = []
             self.current_note_on_dict = {}
@@ -274,7 +273,7 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                         self.last_note_end_time = current_time
                 silence_duration = time.time() - self.last_note_end_time    # When there is no more played notes pending events
                 if self.continuation_sequence:                      # If still continuation notes to be played,
-                    self.play_midi_note(output_port, self.continuation_sequence.pop(0))     # then, play the first one (and remove it)
+                    self.play_midi_note(out_port, self.continuation_sequence.pop(0))     # then, play the first one (and remove it)
                 elif self.played_notes and not self.current_note_on_dict and silence_duration > _silence_threshold:     # otherwise, if notes have been played, all notes on have been ended, and player has stopped playing
                     self.train(self.played_notes)                   # then, train from played notes (if any)
                     self.continuation_sequence = self.generate(self.played_notes[-_max_played_notes_considered:])
