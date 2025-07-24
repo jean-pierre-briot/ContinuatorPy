@@ -242,7 +242,7 @@ class PrefixTreeContinuator:                # The main class and corresponding a
         return self.continuation_sequence
 
     @staticmethod
-    def play_midi_note(port, note):
+    def play_midi_note(out_port, note):
         out_port.send(mido.Message(type='note_on', note = note.pitch, velocity = note.velocity))
         time.sleep(note.duration)
         out_port.send(mido.Message(type='note_off', note = note.pitch, velocity = note.velocity))
@@ -337,5 +337,5 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                 self.batch_test([[48, 50, 52, 53], [48, 50, 50, 52], [48, 50], [50, 48], [48]])
 
 continuator = PrefixTreeContinuator()
-continuator.run('File')
+continuator.run('RealTime')
 
