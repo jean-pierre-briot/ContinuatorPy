@@ -50,7 +50,7 @@ class Note:                                 # Structure of a note
         self.velocity = velocity
 
     def match(self, note):      # Check if current note characteristics (pitch, duration and velocity) is matching some other note (only pitch)
-        return (note.pitch == self.pitch)
+        return note.pitch == self.pitch
 
 def note_sequence_to_pitch_sequence(note_sequence):
     pitch_sequence = []
