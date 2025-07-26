@@ -306,9 +306,9 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                         if event.note in self.current_note_on_dict:
                             print('Warning: Note ' + str(note.pitch) + ' has been repeated before being ended')
                             continue
-                        else:
+                        else:           # A new note has been played
                             self.play_all_pending_note_off_events(out_port, self.continuation_sequence)     # to enforce that all sill on notes are to be finished
-                            self.continuation_sequence = []             # A new note has been played
+                            self.continuation_sequence = []
                             self.last_event = None
                             self.current_time = time.time()
                             if not self.previous_note_start_time:
@@ -340,9 +340,11 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                     continue
 
     def play_all_pending_note_off_events(self, out_port, event_sequence):
-        for event in event_sequence:
-            if event.event_type == 'note_off':
-                self.play_midi_note_event(out_port, event, None)
+        if event_sequence:
+            if event_sequence[0]:   # the case of None (empty) first event
+                for event in event_sequence:
+                    if event.event_type == 'note_off':
+                        self.play_midi_note_event(out_port, event, None)
 
     def batch_test(self, pitch_sequence_list):
         for pitch_sequence in pitch_sequence_list:
@@ -398,4 +400,5 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                 self.batch_test([[48, 50, 52, 53], [48, 50, 50, 52], [48, 50], [50, 48], [48]])
 
 continuator = PrefixTreeContinuator()
-continuator.run('RealTime')
+#continuator.run('RealTime')
+continuator.run('File')
