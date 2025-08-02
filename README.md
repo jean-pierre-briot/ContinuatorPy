@@ -9,8 +9,7 @@ https://web.media.mit.edu/~rebklein/downloads/papers/jnmr%25252E32%25252E3%25252
 I thank François for his continuous feedback.
 François has since programme his own new version in Python with some additional features (notably, a web interface and some constraint enforcing system based on belief propagation).
 
-The heart of the system is:
-A representation of sequences of notes through prefixed trees, representing possible reversed sequences of notes, the root of tree representing the last played note and for each node (note) is attached the list of possible continuations (notes).
+The heart of the system is a representation of sequences of notes through prefixed trees, representing possible reversed sequences of notes, the root of tree representing the last played note and for each node (note) is attached the list of possible continuations (notes).
 These trees are constructed and updated interactively while parsing a sequence of notes having been played.
 The reversed representation allows an efficient parsing (to generate a continuation sequence) by traversing a tree (starting with the root note corresponding to the last note having been played) and searching for the longest (variable order Markov model) the longest sequence matching the input (having been played) sequence.
 The next note of a continuation is chosen (sampled) between the list of possible continuations, with corresponding probabilities (Markov transition model) depending on the number of occurrences of each continuation note.
