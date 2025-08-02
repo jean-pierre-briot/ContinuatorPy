@@ -39,7 +39,7 @@ python3 -m pip install mido
 
 You also need some physical MIDI interface (and maybe to configurate it on your computer) for some instrument (e.g., a keyboard, or any MIDI-enabled instrument).
 
-To run the software, run the command: python3 continuator-poly.py (or continuator-mono.poly)
+To run the software, run the command: python3 continuator-poly.py (or continuator-mono.py)
 
 Note that there are several hyper-parameters (for configuration), e.g., if the Continuator will consider or not transpositions (in all keys) of what has been played.
 They are defined and commented in the beginning (#hyperparameters) of the file.
