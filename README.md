@@ -26,7 +26,7 @@ The main difference between both versions is that the polyphonic version records
 There are three output modes:
 - RealTime, the main one, with the Continuator infinitely listening to the player and generating a continuation.
 - File, where the input sequence as well as the corresponding output continuation sequence are from MIDI files.
-- Batch, some simplified version, with some predefined input sequence of notes pitches, for testing and illustrating the process of construction of the infixed trees.
+- Batch, some simplified version, with some predefined input sequence of notes pitches, for testing and illustrating the process of construction of the trees.
 
 This software may be extended with additional features, present in the original version by François (viewpoints, pitch region, bias, that we actually have also implemented). But our experiments so far show that this simpler (and more pedagogical) version in general is sufficient for interesting medical experiments. The main addition would be: an interface and the belief propagation model to enforce (a restricted set of) possible constraints. See papers by François Pachet and Pierre Roy et al. about Markov constraints.
 
