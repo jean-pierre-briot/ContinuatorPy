@@ -7,7 +7,8 @@ Pachet, François, The Continuator: Musical Interaction with Style, Journal of N
 https://web.media.mit.edu/~rebklein/downloads/papers/jnmr%25252E32%25252E3%25252E333%25252E16861.pdf
 
 I thank François for his continuous feedback.
-François has since programme his own new version in Python with some additional features (notably, a web interface and some constraint enforcing system based on belief propagation).
+François has since programmed his own new version in Python with some additional features (notably, a web interface and some constraint enforcing system based on belief propagation).
+See: https://github.com/fpachet/continuator
 
 The heart of the system is a representation of sequences of notes through prefixed trees, representing possible reversed sequences of notes, the root of tree representing the last played note and for each node (note) is attached the list of possible continuations (notes).
 These trees are constructed and updated interactively while parsing a sequence of notes having been played.
@@ -28,7 +29,7 @@ There are three output modes:
 - File, where the input sequence as well as the corresponding output continuation sequence are from MIDI files.
 - Batch, some simplified version, with some predefined input sequence of notes pitches, for testing and illustrating the process of construction of the trees.
 
-This software may be extended with additional features, present in the original version by François (viewpoints, pitch region, bias, that we actually have also implemented). But our experiments so far show that this simpler (and more pedagogical) version in general is sufficient for interesting medical experiments. The main addition would be: an interface and the belief propagation model to enforce (a restricted set of) possible constraints. See papers by François Pachet and Pierre Roy et al. about Markov constraints.
+This software may be extended with additional features, present in the original version by François (viewpoints, pitch region, bias, that we actually have also implemented). But our experiments so far show that this simpler (and more pedagogical) version in general is sufficient for interesting medical experiments. The main addition would be: an interface and a belief propagation model to enforce (a restricted set of) possible constraints. On this topic, see papers by François Pachet and Pierre Roy et al. about Markov constraints.
 
 To run the Continuator, you need at first to import (download and install) the following additional (non default) Python libraries, with the corresponding commands:
 
