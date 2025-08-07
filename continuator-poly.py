@@ -425,5 +425,5 @@ class PrefixTreeContinuator:                # The main class and corresponding a
         self.save_memory()
 
 continuator = PrefixTreeContinuator()
-continuator.run('File')
+continuator.run('RealTime')
 
