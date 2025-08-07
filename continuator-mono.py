@@ -303,8 +303,7 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                         print("Generation failed.")
                     self.played_notes = []
                 elif self.continuator_stop_time and time.time() - self.continuator_stop_time > _continuator_stop_player_stop_threshold:     # If no activity since continuation played and no activity threshold,
-                    self.save_memory()                              # save memory and finish
-                    break
+                    break               # finish
                 else:                                               # otherwise, continue the main loop
                     continue
 
@@ -355,12 +354,13 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                 print('MIDI ports chosen: input: ' + str(input_port) + ' output: ' + str(output_port))  # Display of MIDI ports chosen
                 self.listen_and_continue(input_port, output_port)
             case 'File':
-                note_sequence = self.read_midi_file('Played.mid')
+                note_sequence = self.read_midi_file('PrePlayed.mid')
                 self.train(note_sequence)
                 self.continuation_sequence = self.generate(note_sequence[-_max_played_notes_considered:])
                 self.write_midi_file('Continuation.mid', self.continuation_sequence)
             case 'Batch':    # Batch test
                 self.batch_test([[48, 50, 52, 53], [48, 50, 50, 52], [48, 50], [50, 48], [48]])
+        self.save_memory()
 
 continuator = PrefixTreeContinuator()
 continuator.run('RealTime')
