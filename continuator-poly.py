@@ -341,7 +341,7 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                         note.duration = self.current_time - note_start_time
                         self.last_note_end_time = self.current_time
                     elif (event.type == 'note_off') or (event.type == 'note_on' and event.velocity == 0):  # An event note_off without previous note_on
-                        print('Warning: Note ' + str(event.note.pitch) + ' has been finished before being started')
+                        print('Warning: Event: ' + str(event) + 'with type: ' + str(event.type) + ' and Note: ' + str(event.note) + ' has been finished before being started')
                     # else: Other kind of event (e.g., clock), do nothing
                 # Player has stopped playing (at this time)
                 self.player_stop_duration = time.time() - self.last_note_end_time  # When there is no more played notes pending events
