@@ -4,5 +4,6 @@
 # But not these files
 !.gitignore
 !continuator-mono.py
+!continuator-poly.py
 !README.md
 !LICENSE
