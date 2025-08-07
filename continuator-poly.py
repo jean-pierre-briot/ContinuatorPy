@@ -417,7 +417,7 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                 print('MIDI ports chosen: input: ' + str(input_port) + ' output: ' + str(output_port))  # Display of MIDI ports chosen
                 self.listen_and_continue(input_port, output_port)
             case 'File':
-                note_sequence = self.read_midi_file('Test.mid')
+                note_sequence = self.read_midi_file('PrePlayed.mid')
                 self.train(note_sequence)
                 self.continuation_sequence = self.generate(note_sequence[-_max_played_notes_considered:])
                 self.write_midi_file('Continuation.mid', self.continuation_sequence)
@@ -425,5 +425,5 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                 self.batch_test([[48, 50, 52, 53], [48, 50, 50, 52], [48, 50], [50, 48], [48]])
 
 continuator = PrefixTreeContinuator()
-continuator.run('RealTime')
+continuator.run('File')
 
