@@ -303,7 +303,7 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                         print("Generation failed.")
                     self.played_notes = []
                 elif self.continuator_stop_time and time.time() - self.continuator_stop_time > _continuator_stop_player_stop_threshold:     # If no activity since continuation played and no activity threshold,
-                    break               # finish
+                    break                                           # finish
                 else:                                               # otherwise, continue the main loop
                     continue
 
