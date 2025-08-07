@@ -19,6 +19,8 @@ import random
 import time
 import mido
 from mido import MidiTrack, Message, open_input, open_output, get_input_names, get_output_names
+import os
+import pickle
 
 # constants
 _min_midi_pitch = 0
@@ -26,7 +28,8 @@ _max_midi_pitch = 128
 _max_midi_velocity = 64
 
 #hyperparameters
-_silence_threshold = 2.0					# Silence duration after which Continuator will start train and generate
+_player_stop_continuator_start_threshold = 2.0  # Silence duration after which Continuator will start train and generate
+_continuator_stop_player_stop_threshold = 15.0  # Silence duration after which Continuator will stop
 _max_continuation_length = 30			    # Maximum number of notes of a continuation
 _max_played_notes_considered = 10		    # Maximum last number of played notes considered for training
 _default_generated_note_duration = 0.5	    # Default duration for generated notes (for batch test)
@@ -81,6 +84,8 @@ class PrefixTreeContinuator:                # The main class and corresponding a
         self.last_note_end_time = None
         self.played_notes = []
         self.continuation_sequence = []
+        self.player_stop_duration = None
+        self.continuator_stop_time = None
 
     def train(self, note_sequence):         # Main entry function lo train the Continuator with a sequence of notes
                                             # note_sequence = [(<pitch_1>, <duration_1>, <velocity_#), ... , (<pitch_N>, <duration_N>, <velocity_N>)]
@@ -165,6 +170,17 @@ class PrefixTreeContinuator:                # The main class and corresponding a
         if node.children_list is not None:
             for child in node.children_list:
                 self.display_tree(child, level + 1)
+
+    def save_memory(self):
+        print('Save memory in file PostMemory.pickle')
+        with open('PostMemory.pickle', 'wb') as post_memory_file:
+            pickle.dump([self.root_dictionary, self.continuation_dictionary], post_memory_file)
+
+    def read_memory(self):
+        if os.path.isfile('PreMemory.pickle'):
+            print('Read memory from PreMemory.pickle')
+            with open('PreMemory.pickle', 'rb') as pre_memory_file:
+                [self.root_dictionary, self.continuation_dictionary] = pickle.load(pre_memory_file)
 
     def generate(self, note_sequence):                              # Generation of a continuation
         length_note_sequence = len(note_sequence)                   # Remember length of the played input sequence of notes, because note_sequence will be expanded (append)
@@ -257,7 +273,7 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                 for event in in_port.iter_pending():
                     if event.type == 'note_on' and event.velocity > 0:
                         if event.note in self.current_note_on_dict:
-                            print('Warning: Note ' + str(note.pitch) + ' has been repeated before being ended')
+                            print('Warning: Note ' + str(event.note.pitch) + ' has been repeated before being ended')
                             continue
                         else:
                             self.continuation_sequence = []             # A new note has been played
@@ -271,15 +287,24 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                         del self.current_note_on_dict[event.note]
                         note.duration = current_time - note_start_time
                         self.last_note_end_time = current_time
-                silence_duration = time.time() - self.last_note_end_time    # When there is no more played notes pending events
+                    elif (event.type == 'note_off') or (event.type == 'note_on' and event.velocity == 0):    # An event note_off without previous note_on
+                        print('Warning: Note ' + str(event.note.pitch) + ' has been finished before being started')
+                    # else: Other kind of event (e.g., clock), do nothing
+                # Player has stopped playing (at this time)
+                self.player_stop_duration = time.time() - self.last_note_end_time    # When there is no more played notes pending events
                 if self.continuation_sequence:                      # If still continuation notes to be played,
                     self.play_midi_note(out_port, self.continuation_sequence.pop(0))     # then, play the first one (and remove it)
-                elif self.played_notes and not self.current_note_on_dict and silence_duration > _silence_threshold:     # otherwise, if notes have been played, all notes on have been ended, and player has stopped playing
+                    if not self.continuation_sequence:              # If continuation sequence empty,
+                        self.continuator_stop_time = time.time()    # mark starting time for monitoring end of activity
+                elif self.played_notes and not self.current_note_on_dict and self.player_stop_duration > _player_stop_continuator_start_threshold:     # otherwise, if notes have been played, all notes on have been ended, and player has stopped playing
                     self.train(self.played_notes)                   # then, train from played notes (if any)
                     self.continuation_sequence = self.generate(self.played_notes[-_max_played_notes_considered:])
                     if not self.continuation_sequence:
                         print("Generation failed.")
                     self.played_notes = []
+                elif self.continuator_stop_time and time.time() - self.continuator_stop_time > _continuator_stop_player_stop_threshold:     # If no activity since continuation played and no activity threshold,
+                    self.save_memory()                              # save memory and finish
+                    break
                 else:                                               # otherwise, continue the main loop
                     continue
 
@@ -321,6 +346,7 @@ class PrefixTreeContinuator:                # The main class and corresponding a
             midi_file.save(midi_file_name)
 
     def run(self, mode):
+        self.read_memory()
         match mode:
             case 'RealTime':
                 print('MIDI ports available: input: ' + str(mido.get_input_names()) + ' output: ' + str(mido.get_output_names()))  # Display of MIDI ports
@@ -329,7 +355,7 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                 print('MIDI ports chosen: input: ' + str(input_port) + ' output: ' + str(output_port))  # Display of MIDI ports chosen
                 self.listen_and_continue(input_port, output_port)
             case 'File':
-                note_sequence = self.read_midi_file('Test.mid')
+                note_sequence = self.read_midi_file('Played.mid')
                 self.train(note_sequence)
                 self.continuation_sequence = self.generate(note_sequence[-_max_played_notes_considered:])
                 self.write_midi_file('Continuation.mid', self.continuation_sequence)
