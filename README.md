@@ -29,8 +29,8 @@ There are three output modes:
 - File, where the input sequence as well as the corresponding output continuation sequence are from MIDI files.
 - Batch, some simplified version, with some predefined input sequence of notes pitches, for testing and illustrating the process of construction of the trees.
 
-In the RealTime (default) mode, a PreMemory.pickle file (if existing) is used as initial memory (trees and continuation).
-Conversely, when the Continuator finishes (after some threshold silence - no more playing from the user), the built memory is saved in a PostMemory.pickle file, thus being available for possible reuses (as initial memory).
+When starting the Continuator, the PreMemory.pickle file (if existing) is used as initial memory (trees and continuation).
+Conversely, when the Continuator finishes (after some threshold silence - no more playing from the user), the built memory is saved in the PostMemory.pickle file, thus being available for possible reuses (as initial memory).
 
 This software may be extended with additional features, present in the original version by François (viewpoints, pitch region, bias, that we actually have also implemented). But our experiments so far show that this simpler (and more pedagogical) version in general is sufficient for interesting medical experiments. The main addition would be: an interface and a belief propagation model to enforce (a restricted set of) possible constraints. On this topic, see papers by François Pachet and Pierre Roy et al. about Markov constraints.
 
