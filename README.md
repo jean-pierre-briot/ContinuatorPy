@@ -10,9 +10,9 @@ I thank François for his continuous feedback.
 François has since programmed his own new version in Python with some additional features (notably, a web interface and some constraint enforcing system based on belief propagation).
 See: https://github.com/fpachet/continuator
 
-The heart of the system is a representation of sequences of notes through prefixed trees, representing possible reversed sequences of notes, the root of tree representing the last played note and for each node (note) is attached the list of possible continuations (notes).
-These trees are constructed and updated interactively while parsing a sequence of notes having been played.
-The reversed representation allows an efficient parsing (to generate a continuation sequence) by traversing a tree (starting with the root note corresponding to the last note having been played) and searching for the longest (variable order Markov model) the longest sequence matching the input (having been played) sequence.
+The heart of the system is a representation of sequences of notes through prefixed trees, representing possible reversed sequences of notes, the root of a tree representing the last played note and for each node (note) is attached the list of possible continuations (notes).
+These trees are constructed and updated while parsing a sequence of notes having been played.
+The reversed representation allows an efficient parsing (to generate a continuation sequence) by traversing a tree (starting with the root note corresponding to the last note having been played) and searching for the longest (variable order Markov model) sequence matching the input (having been played).
 The next note of a continuation is chosen (sampled) between the list of possible continuations, with corresponding probabilities (Markov transition model) depending on the number of occurrences of each continuation note.
 When generating the next note of the continuation, this note is appended to the input (having been played) notes and the matching process continues, this time starting with this new last note.
 The main loop is a listen, generate and continue loop. Once the player stops playing, the Continuator starts generating a continuation corresponding to the sequence of notes having played. It does it MIDI event by MIDI event (or note by note in the case of the monophonic version), in order to let the process to be stopped by the player restarting to play.
