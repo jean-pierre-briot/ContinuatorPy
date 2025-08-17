@@ -6,7 +6,7 @@
 # Continuator in Python
 # Version 1.2.2
 # Versions/dates: last: 20/03/2025; first: 27/02/2025
-# monophonic, batch or real-time mode, richer state/viewpoint (note/pitch, duration, velocity), transposition, tolerance matching
+# monophonic, batch or real-time mode, transposition
 # Jean-Pierre Briot
 
 # This is a reimplementation in Python of the Continuator from Francois Pachet.
@@ -261,7 +261,7 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                             continue
                         else:
                             self.continuation_sequence = []             # A new note has been played
-                            note = Note(pitch=event.note, duration=None, velocity=event.velocity)
+                            note = Note(pitch=event.note, duration=_default_fixed_duration, velocity=event.velocity)
                             current_time = time.time()
                             self.current_note_on_dict[note.pitch] = (note, current_time)
                             self.played_notes.append(note)
@@ -299,7 +299,7 @@ class PrefixTreeContinuator:                # The main class and corresponding a
             for event in track:
                 current_time += event.time
                 if event.type == "note_on" and event.velocity > 0:
-                    note = Note(pitch=event.note, duration=None, velocity=event.velocity)
+                    note = Note(pitch=event.note, duration=0, velocity=event.velocity)
                     note_sequence.append(note)
                     if note.pitch in self.current_note_on_dict:
                         print('Warning: Note ' + str(note.pitch) + ' has been repeated before being ended')
@@ -329,7 +329,7 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                 print('MIDI ports chosen: input: ' + str(input_port) + ' output: ' + str(output_port))  # Display of MIDI ports chosen
                 self.listen_and_continue(input_port, output_port)
             case 'File':
-                note_sequence = self.read_midi_file('Test.mid')
+                note_sequence = self.read_midi_file('PrePlayed.mid')
                 self.train(note_sequence)
                 self.continuation_sequence = self.generate(note_sequence[-_max_played_notes_considered:])
                 self.write_midi_file('Continuation.mid', self.continuation_sequence)
@@ -337,5 +337,5 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                 self.batch_test([[48, 50, 52, 53], [48, 50, 50, 52], [48, 50], [50, 48], [48]])
 
 continuator = PrefixTreeContinuator()
-continuator.run('RealTime')
+continuator.run('File')
 
