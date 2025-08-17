@@ -38,7 +38,6 @@ This software may be extended with additional features, present in the original 
 To run the Continuator, you need at first to import (download and install) the following additional (non default) Python libraries, with the corresponding commands:
 
     python3 -m pip install time
-
     python3 -m pip install mido
 
 You also need some physical MIDI interface (and maybe to configurate it on your computer) for some instrument (e.g., a keyboard, or any MIDI-enabled instrument).
