@@ -16,7 +16,7 @@ The reversed representation allows an efficient parsing (to generate a continuat
 The next note of a continuation is chosen (sampled) between the list of possible continuations, with corresponding probabilities (Markov transition model) depending on the number of occurrences of each continuation note.
 When generating the next note of the continuation, this note is appended to the input (having been played) notes and the matching process continues, this time starting with this new last note.
 The main loop is a listen, generate and continue loop. Once the player stops playing, the Continuator starts generating a continuation corresponding to the sequence of notes having played. It does it MIDI event by MIDI event (or note by note in the case of the monophonic version), in order to let the process to be stopped by the player restarting to play.
-The delta time between respective starting times (offsets) of two successive notes is saved in order to be able to reconstruct at generation time the possible overlapping (polyphony) of played notes. 
+The delta times between respective starting times (offsets) of two successive notes are saved in order to be able to reconstruct at generation time the possible overlapping (polyphony) of played notes. 
 
 Continuator is polyphonic (considering simultaneous notes, including chords).
 There is still a previous monophonic version (continuator-mono.py).
