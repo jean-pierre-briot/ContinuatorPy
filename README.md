@@ -21,8 +21,9 @@ There are two versions:
 - monophonic (considering individual notes): continuator-mono.py
 - polyphonic (considering simultaneous notes, including chords): continuator-poly.py
 The polyphonic version subsumes the monophonic version, but the monophonic version is little simpler to understand and may be sufficient in some cases.
+I have now redefined the monophonic version as a specialization of the polyphonic version (which is thge main version).
 
-The main difference between both versions is that the polyphonic version records the delta between a note starting time and previous note starting time, thus being able to reproduce the overlapping between notes. Main loop goes on MIDI event by MIDI event (and not, note by note, as in the monophonic version), in order to manage overlapping notes and possible interruptions by the player restarting to play.
+The main difference between both versions is that the polyphonic version records the delta between a note starting time and previous note starting time, thus being able to reproduce the overlapping between notes. Also, the main loop goes on MIDI event by MIDI event (and not, note by note, as in the monophonic version), in order to manage overlapping notes and possible interruptions by the player restarting to play.
 
 There are three output modes:
 - RealTime, the main one, with the Continuator infinitely listening to the player and generating a continuation.
@@ -42,7 +43,16 @@ python3 -m pip install mido
 
 You also need some physical MIDI interface (and maybe to configurate it on your computer) for some instrument (e.g., a keyboard, or any MIDI-enabled instrument).
 
-To run the software, run the command: python3 continuator-poly.py (or continuator-mono.poly)
+To run the software, run the command: python3 continuator-poly.py (or continuator-mono.poly) after having uncommented the final two lines:
+continuator = PrefixTreeContinuator()
+continuator.run('RealTime')
+
+You can also load the file in a Python interpreter, by copying in it the following lines:
+with open("continuator-poly.py", "r") as continuator_poly_file:
+    continuator_poly_code = continuator_poly_file.read()
+    exec(continuator_poly_code)
+
+And then run the Continuator with the two lines above.
 
 Note that there are several hyper-parameters (for configuration), e.g., if the Continuator will consider or not transpositions (in all keys) of what has been played.
 They are defined and commented in the beginning (#hyperparameters) of the file.
