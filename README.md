@@ -42,10 +42,18 @@ To run the Continuator, you need at first to import (download and install) the f
 
 You also need some physical MIDI interface (and maybe to configurate it on your computer) for some instrument (e.g., a keyboard, or any MIDI-enabled instrument).
 
-To run the software, run the command: python3 continuator-poly.py (or continuator-mono.poly) after having uncommented the final two lines:
+To run the software from a Unix shell, uncomment the final two lines of the code file (continuator-poly.py or continuator-mono.py)
 
     continuator = PrefixTreeContinuator()
     continuator.run('RealTime')
+
+and run the command:
+
+    python3 continuator-poly.py
+
+or
+
+    python3 continuator-mono.py
 
 You can also load the file in a Python interpreter, by copying in it the following three lines:
 
