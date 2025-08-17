@@ -37,22 +37,22 @@ This software may be extended with additional features, present in the original 
 
 To run the Continuator, you need at first to import (download and install) the following additional (non default) Python libraries, with the corresponding commands:
 
-python3 -m pip install time
+    python3 -m pip install time
 
-python3 -m pip install mido
+    python3 -m pip install mido
 
 You also need some physical MIDI interface (and maybe to configurate it on your computer) for some instrument (e.g., a keyboard, or any MIDI-enabled instrument).
 
 To run the software, run the command: python3 continuator-poly.py (or continuator-mono.poly) after having uncommented the final two lines:
 
-continuator = PrefixTreeContinuator()
-continuator.run('RealTime')
+    continuator = PrefixTreeContinuator()
+    continuator.run('RealTime')
 
 You can also load the file in a Python interpreter, by copying in it the following three lines:
 
-with open("continuator-poly.py", "r") as continuator_poly_file:
-    continuator_poly_code = continuator_poly_file.read()
-    exec(continuator_poly_code)
+    with open("continuator-poly.py", "r") as continuator_poly_file:
+        continuator_poly_code = continuator_poly_file.read()
+        exec(continuator_poly_code)
 
 And then run the Continuator with the two lines above.
 
