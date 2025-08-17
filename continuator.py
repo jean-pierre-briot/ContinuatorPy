@@ -31,7 +31,8 @@ _max_midi_velocity = 64
 _player_stop_continuator_start_threshold = 2.0  # Silence duration after which Continuator will start train and generate
 _continuator_stop_player_stop_threshold = 15.0  # Silence duration after which Continuator will stop
 _max_continuation_length = 100			    # Maximum number of events (= double number of notes) of a continuation
-_max_played_notes_considered = 10		    # Maximum last number of played notes considered for training
+_max_played_notes_considered = 30		    # Maximum last number of played notes considered for training
+_max_order = 20                             # Maximum Markov oder (and thus generation length) for each generation of continuation note
 _default_generated_note_duration = 0.5	    # Default duration for generated notes (for batch test)
 _default_generated_note_velocity = _max_midi_velocity   # Default velocity for generated notes (for batch test)
 _key_transposition_semi_tones = 6			# Transposition into N semitones above and N-1 below. If N = 6, this corresponds to a full transposition into the other 11 keys.
@@ -259,7 +260,7 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                     else:                                           # otherwise, we continue traversing the tree
                         current_node = matching_child               # from current child node
                         j += 1                                      # and down one more level (and previous element of the input sequence)
-                if current_node.children_list is None or j >= length_note_sequence or matching_child is None:
+                if current_node.children_list is None or j >= length_note_sequence or j > _max_order or matching_child is None:
                                                                     # If the search is finished
                                                                     # because:
                                                                     # a) we reached a leaf,
