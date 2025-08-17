@@ -15,7 +15,8 @@ These trees are constructed and updated interactively while parsing a sequence o
 The reversed representation allows an efficient parsing (to generate a continuation sequence) by traversing a tree (starting with the root note corresponding to the last note having been played) and searching for the longest (variable order Markov model) the longest sequence matching the input (having been played) sequence.
 The next note of a continuation is chosen (sampled) between the list of possible continuations, with corresponding probabilities (Markov transition model) depending on the number of occurrences of each continuation note.
 When generating the next note of the continuation, this note is appended to the input (having been played) notes and the matching process continues, this time starting with this new last note.
-The main loop is a listen, generate and continue loop. Once the player stops playing, the Continuator starts generating a continuation corresponding to the sequence of notes having played. It does it note by note (or MIDI event by MIDI event in the case of the polyphonic version), in order to let the process to be stopped by the player restarting to play.
+The main loop is a listen, generate and continue loop. Once the player stops playing, the Continuator starts generating a continuation corresponding to the sequence of notes having played. It does it MIDI event by MIDI event (or note by note in the case of the monophonic version), in order to let the process to be stopped by the player restarting to play.
+The delta time between respective starting times (offsets) of two successive notes is saved in order to be able to reconstruct at generation time the possible overlapping (polyphony) of played notes. 
 
 Continuator is polyphonic (considering simultaneous notes, including chords).
 There is still a previous monophonic version (continuator-mono.py).
