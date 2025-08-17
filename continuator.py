@@ -34,7 +34,7 @@ _max_continuation_length = 100			    # Maximum number of events (= double number
 _max_played_notes_considered = 10		    # Maximum last number of played notes considered for training
 _default_generated_note_duration = 0.5	    # Default duration for generated notes (for batch test)
 _default_generated_note_velocity = _max_midi_velocity   # Default velocity for generated notes (for batch test)
-_key_transposition_semi_tones = 0			# Transposition into N semitones above and N-1 below. If N = 6, this corresponds to a full transposition into the other 11 keys.
+_key_transposition_semi_tones = 6			# Transposition into N semitones above and N-1 below. If N = 6, this corresponds to a full transposition into the other 11 keys.
                                             # If N = 0, there is no transposition.
                                             # If N >> 6, this corresponds to also transposition into octaves.
                                             # N will be truncated by the max and min MIDI pitch values, thus N is arbitrary
