@@ -17,13 +17,8 @@ The next note of a continuation is chosen (sampled) between the list of possible
 When generating the next note of the continuation, this note is appended to the input (having been played) notes and the matching process continues, this time starting with this new last note.
 The main loop is a listen, generate and continue loop. Once the player stops playing, the Continuator starts generating a continuation corresponding to the sequence of notes having played. It does it note by note (or MIDI event by MIDI event in the case of the polyphonic version), in order to let the process to be stopped by the player restarting to play.
 
-There are two versions:
-- monophonic (considering individual notes): continuator-mono.py
-- polyphonic (considering simultaneous notes, including chords): continuator-poly.py
-The polyphonic version subsumes the monophonic version, but the monophonic version is little simpler to understand and may be sufficient in some cases.
-I have now redefined the monophonic version as a specialization of the polyphonic version (which is thge main version).
-
-The main difference between both versions is that the polyphonic version records the delta between a note starting time and previous note starting time, thus being able to reproduce the overlapping between notes. Also, the main loop goes on MIDI event by MIDI event (and not, note by note, as in the monophonic version), in order to manage overlapping notes and possible interruptions by the player restarting to play.
+Continuator is polyphonic (considering simultaneous notes, including chords).
+There is still a previous monophonic version (continuator-mono.py).
 
 There are three output modes:
 - RealTime, the main one, with the Continuator infinitely listening to the player and generating a continuation.
@@ -40,28 +35,9 @@ To run the Continuator, you need at first to import (download and install) the f
     python3 -m pip install time
     python3 -m pip install mido
 
-You also need some physical MIDI interface (and maybe to configurate it on your computer) for some instrument (e.g., a keyboard, or any MIDI-enabled instrument).
+Then, run the command:
 
-To run the software from a Unix shell, uncomment the final two lines of the code file (continuator-poly.py or continuator-mono.py)
-
-    continuator = PrefixTreeContinuator()
-    continuator.run('RealTime')
-
-and run the command:
-
-    python3 continuator-poly.py
-
-or
-
-    python3 continuator-mono.py
-
-You can also load the file in a Python interpreter, by copying in it the following three lines:
-
-    with open("continuator-poly.py", "r") as continuator_poly_file:
-        continuator_poly_code = continuator_poly_file.read()
-        exec(continuator_poly_code)
-
-And then run the Continuator with the two lines above.
+    python3 continuator.py
 
 Note that there are several hyper-parameters (for configuration), e.g., if the Continuator will consider or not transpositions (in all keys) of what has been played.
 They are defined and commented in the beginning (#hyperparameters) of the file.
