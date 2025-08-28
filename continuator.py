@@ -13,7 +13,7 @@
 # His original implementation (in 2002, in Java) had unfortunately been lost.
 # I tried to reimplement the Continuator from the informations in his publication:
 # Pachet, Francois, The Continuator: Musical Interaction with Style, Journal of New Music Research, Volume 32, Issue 3, Pages 333-341, 2003.
-# Thanks to Francois for his continuous feedback.
+# My thanks to Francois for his continuous feedback.
 
 import random
 import time
