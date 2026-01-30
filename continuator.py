@@ -5,7 +5,7 @@
 
 # Continuator in Python
 # Version 1.3.1
-# Versions/dates: current: 28/08/2025; first: 27/02/2025
+# Versions/dates: current: 29/01/2026; first: 27/02/2025
 # Polyphonic
 # Jean-Pierre Briot
 
@@ -21,6 +21,7 @@ import mido
 from mido import MidiTrack, Message, open_input, open_output, get_input_names, get_output_names
 import os
 import pickle
+from metrics import save_played_notes, display_metrics_history
 
 # constants
 _min_midi_pitch = 0
@@ -30,9 +31,9 @@ _max_midi_velocity = 64
 #hyperparameters
 _player_stop_continuator_start_threshold = 2.0  # Silence duration after which Continuator will start train and generate
 _continuator_stop_player_stop_threshold = 15.0  # Silence duration after which Continuator will stop
-_max_continuation_length = 50			    # Maximum number of events (= double number of notes) of a continuation
-_max_played_notes_considered = 25		    # Maximum last number of played notes considered for training
-_max_order = 20                             # Maximum Markov oder (and thus generation length) for each generation of continuation note
+_max_continuation_length = 30			    # Maximum number of events (= double number of notes) of a continuation
+_max_played_notes_considered = 20		    # Maximum last number of played notes considered for training
+_pseudo_max_order = 15                      # Maximum Markov oder (and thus generation length) for each generation of continuation note
 _default_generated_note_duration = 0.5	    # Default duration for generated notes (for batch test)
 _default_generated_note_velocity = _max_midi_velocity   # Default velocity for generated notes (for batch test)
 _key_transposition_semi_tones = 6			# Transposition into N semitones above and N-1 below. If N = 6, this corresponds to a full transposition into the other 11 keys.
@@ -58,7 +59,7 @@ class Note:                                 # Structure of a note
     def match(self, note):      # Check if current note characteristics (pitch, duration and velocity) is matching some other note (only pitch)
         return note.pitch == self.pitch
 
-class Note_Event:
+class NoteEvent:
     def __init__(self, event_type, pitch, velocity, event_time, duration, delta):
         self.event_type = event_type
         self.pitch = pitch
@@ -76,7 +77,7 @@ def note_sequence_to_pitch_sequence(note_sequence):
         pitch_sequence.append(note.pitch)
     return pitch_sequence
 
-def pitch_sequence_to_note_sequence(pitch_sequence):    # For Batch test
+def pitch_sequence_to_note_sequence(pitch_sequence):        # For Batch test
     note_sequence = []
     for pitch in pitch_sequence:
         note = Note(pitch=pitch, duration=_default_generated_note_duration, velocity=_default_generated_note_velocity, start_time=0, delta=0)
@@ -205,8 +206,8 @@ class PrefixTreeContinuator:                # The main class and corresponding a
         event_time = time.time()
         for note in note_sequence:
             event_time = event_time + note.delta
-            event_sequence.append(Note_Event(event_type='note_on', pitch=note.pitch, velocity=note.velocity, event_time=event_time, duration=note.duration, delta=note.delta))
-            event_sequence.append(Note_Event(event_type='note_off', pitch=note.pitch, velocity=note.velocity, event_time=event_time + note.duration, duration=note.duration, delta=None))
+            event_sequence.append(NoteEvent(event_type='note_on', pitch=note.pitch, velocity=note.velocity, event_time=event_time, duration=note.duration, delta=note.delta))
+            event_sequence.append(NoteEvent(event_type='note_off', pitch=note.pitch, velocity=note.velocity, event_time=event_time + note.duration, duration=note.duration, delta=None))
         event_sequence.sort(key = note_event_time)
         return event_sequence
 
@@ -260,7 +261,7 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                     else:                                           # otherwise, we continue traversing the tree
                         current_node = matching_child               # from current child node
                         j += 1                                      # and down one more level (and previous element of the input sequence)
-                if current_node.children_list is None or j >= length_note_sequence or j > _max_order or matching_child is None:
+                if current_node.children_list is None or j >= length_note_sequence or j > _pseudo_max_order or matching_child is None:
                                                                     # If the search is finished
                                                                     # because:
                                                                     # a) we reached a leaf,
@@ -312,7 +313,7 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                             continue
                         else:           # A new note has been played
                             if is_first_note_played:
-                                is_fist_note_played = False
+                                is_first_note_played = False
                                 self.play_all_pending_note_off_events(out_port, self.continuation_sequence)  # to enforce that all still on notes are to be finished
                                 self.continuation_sequence = []
                                 last_event = None
@@ -322,6 +323,9 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                             current_time = time.time()
                             note = Note(pitch=event.note, duration=None, velocity=event.velocity, start_time=current_time, delta=delta)
                             current_note_on_dict[note.pitch] = (note, current_time)
+                            #if len(current_note_on_dict) >= 3:
+                                #ordered_pitch_list = sorted(list(current_note_on_dict))
+                                #chord = chordify_pitch_list(ordered_pitch_list)
                             played_notes.append(note)
                             previous_note_start_time = current_time
                     elif ((event.type == 'note_off') or (event.type == 'note_on' and event.velocity == 0)) and (event.note in current_note_on_dict):
@@ -331,7 +335,7 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                         note.duration = current_time - note_start_time
                         last_note_end_time = current_time
                     elif (event.type == 'note_off') or (event.type == 'note_on' and event.velocity == 0):  # An event note_off without previous note_on
-                        print('Warning: Event: ' + str(event) + 'with type: ' + str(event.type) + ' and Note: ' + str(event.note) + ' has been finished before being started')
+                        print('Warning: Event: ' + str(event) + ' with type: ' + str(event.type) + ' and Note: ' + str(event.note) + ' has been finished before being started')
                     # else: Other kind of event (e.g., clock), do nothing
                 # Player has stopped playing (at this time)
                 player_stop_duration = time.time() - last_note_end_time  # When there is no more played notes pending events
@@ -342,11 +346,13 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                     if not self.continuation_sequence:  # If continuation sequence empty,
                         continuator_stop_time = time.time()  # mark starting time for monitoring end of activity
                 elif played_notes and not current_note_on_dict and player_stop_duration > _player_stop_continuator_start_threshold:  # otherwise, if notes have been played, all notes on have been ended, and player has stopped playing
+                    save_played_notes(played_notes)
                     self.train(played_notes)                   # then, train from played notes (if any)
                     self.continuation_sequence = self.generate(played_notes[-_max_played_notes_considered:])
                     if not self.continuation_sequence:
                         print("Generation failed.")
                     played_notes = []
+                    is_first_note_played = True
                 elif continuator_stop_time and time.time() - continuator_stop_time > _continuator_stop_player_stop_threshold:  # If no activity since continuation played and no activity threshold,
                     print('Continuator has stopped after ' + str(_continuator_stop_player_stop_threshold) + ' seconds of player inactivity')
                     break				                            # finish
@@ -404,13 +410,15 @@ class PrefixTreeContinuator:                # The main class and corresponding a
         match mode:
             case 'RealTime':
                 print('MIDI ports available: input: ' + str(mido.get_input_names()) + ' output: ' + str(mido.get_output_names()))  # Display of MIDI ports
+                if len(mido.get_input_names()) == 0:           # If there is no input device/software to produce MIDI event flow,
+                    raise RuntimeError('There is no input device to produce the MIDI player event flow')   # raise an error
                 input_port = mido.get_input_names()[0]
-                if len(mido.get_output_names()) == 0:            # If there is no output device/software to receive the continuation events output flow,
-                    raise RuntimeError('There is no output device to receive the MIDI continuation flow')   # raise en arror
-                elif len(mido.get_output_names()) == 1:          # If there is only one MIDI device (and we assume that it has an input - it can produce sound),
+                if len(mido.get_output_names()) == 0:           # If there is no output device/software to receive the continuation events output flow,
+                    raise RuntimeError('There is no output device to receive the MIDI continuation flow')   # raise an error
+                elif len(mido.get_output_names()) == 1:         # If there is only one MIDI device (and we assume that it has an input - it can produce sound),
                     output_port = mido.get_output_names()[0]    # connect the output port to it (1st output port),
                 else:
-                    output_port = mido.get_output_names()[1]    # otherwise, connect the output port to the 2nd output port, assuming that it is some software to produce sound (e.g., AppleLogic)
+                    output_port = mido.get_output_names()[1]    # Otherwise, connect the output port to the 2nd output port, assuming that it is some software to produce sound (e.g., AppleLogic)
                 print('MIDI ports chosen: input: ' + str(input_port) + ' output: ' + str(output_port))  # Display of MIDI ports chosen
                 self.listen_and_continue(input_port, output_port)
             case 'File':
@@ -420,8 +428,10 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                 self.write_midi_file('Continuation.mid', self.continuation_sequence)
             case 'Batch':    # Batch test
                 self.batch_test([[48, 50, 52, 53], [48, 50, 50, 52], [48, 50], [50, 48], [48]])
+        display_metrics_history()
         self.save_memory()
 
 # To run it:
 continuator = PrefixTreeContinuator()
 continuator.run('RealTime')
+#continuator.run('Batch')
