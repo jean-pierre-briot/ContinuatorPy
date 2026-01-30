@@ -147,7 +147,7 @@ def display_metrics_history():
         ys = list(_metrics_history['chroma'][y].values())
         ax.bar(xs, ys, zs=y, zdir='y')
     ax.set_xlabel('Chroma')
-    ax.set_ylabel('Tonality')
+    ax.set_ylabel('Turns')
     ax.set_zlabel('%')
     ax.set_yticks(y_list)
     plt.show()
