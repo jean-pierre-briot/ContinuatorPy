@@ -5,6 +5,8 @@
 !.gitignore
 !continuator-mono.py
 !continuator.py
+!metrics.py
+!chordify.py
 !README.md
 !LICENSE
 
