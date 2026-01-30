@@ -19,7 +19,7 @@ The main loop is a listen, generate and continue loop. Once the player stops pla
 The delta times between respective starting times (offsets) of two successive notes are saved in order to be able to reconstruct at generation time the possible overlapping (polyphony) of played notes. 
 
 Continuator is polyphonic (considering simultaneous notes, including chords).
-There is still a previous monophonic version (continuator-mono.py).
+There is still some older previous monophonic version (continuator-mono.py).
 
 There are three output modes:
 - RealTime, the main one, with the Continuator infinitely listening to the player and generating a continuation.
@@ -30,6 +30,9 @@ When starting the Continuator, the PreMemory.pickle file (if existing) is used a
 Conversely, when the Continuator finishes (after some threshold silence - no more playing from the user), the built memory is saved in the PostMemory.pickle file, thus being available for possible reuses (as initial memory).
 
 This software may be extended with additional features, present in the original version by François (viewpoints, pitch region, bias, that we actually have also implemented). But our experiments so far show that this simpler (and more pedagogical) version in general is sufficient for interesting musical experiments. The main addition would be: an interface and a belief propagation model to enforce (a restricted set of) possible constraints. On this topic, see papers by François Pachet and Pierre Roy et al. about Markov constraints.
+
+File metrics.py will compute and at the end display various metrics (entropy, complexity...) computed for each run of the user playing.
+File chordify.py is a minimal/simplified method to estimate chords from a set of component notes.
 
 To run the Continuator, you need at first to import (download and install) the following additional (non default) Python libraries, with the corresponding commands:
 
