@@ -31,7 +31,7 @@ _max_midi_velocity = 64
 #hyperparameters
 _player_stop_continuator_start_threshold = 2.0  # Silence duration after which Continuator will start train and generate
 _continuator_stop_player_stop_threshold = 15.0  # Silence duration after which Continuator will stop
-_max_continuation_length = 30			    # Maximum number of events (= double number of notes) of a continuation
+_max_continuation_length = 40			    # Maximum number of events (= double number of notes) of a continuation
 _max_played_notes_considered = 20		    # Maximum last number of played notes considered for training
 _pseudo_max_order = 15                      # Maximum Markov oder (and thus generation length) for each generation of continuation note
 _default_generated_note_duration = 0.5	    # Default duration for generated notes (for batch test)
@@ -349,10 +349,13 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                     save_played_notes(played_notes)
                     self.train(played_notes)                   # then, train from played notes (if any)
                     self.continuation_sequence = self.generate(played_notes[-_max_played_notes_considered:])
-                    if not self.continuation_sequence:
-                        print("Generation failed.")
                     played_notes = []
                     is_first_note_played = True
+                    if not self.continuation_sequence:
+                        print("Generation failed.")
+                        continuator_stop_time = time.time()
+                    else:
+                        continuator_stop_time = None
                 elif continuator_stop_time and time.time() - continuator_stop_time > _continuator_stop_player_stop_threshold:  # If no activity since continuation played and no activity threshold,
                     print('Continuator has stopped after ' + str(_continuator_stop_player_stop_threshold) + ' seconds of player inactivity')
                     break				                            # finish

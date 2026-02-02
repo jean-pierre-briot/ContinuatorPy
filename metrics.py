@@ -126,7 +126,7 @@ def display_metrics_history():
     ax8.plot(x_list, _metrics_history['chroma_complexity'], color='brown')
     ax8.set_title('Chroma\nComplexity', color='brown')
     ax9.plot(x_list, _metrics_history['compression_ratio'], color='grey')
-    ax9.set_title('Notes\nCompression %', color='grey')
+    ax9.set_title('Notes\nCompression Rate', color='grey')
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
     y_list = list(range(0, len(_metrics_history['length'])))
