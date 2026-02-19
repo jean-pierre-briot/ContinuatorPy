@@ -179,8 +179,8 @@ class PrefixTreeContinuator:                # The main class and corresponding a
         indent = '  ' * level
         print(indent, end='')
         continuation_pitch_list = []
-        for i in range(len(node.continuation_index_list)):
-            continuation_pitch_list.append(self.continuation_dictionary[node.continuation_index_list[i]].pitch)
+        for index in node.continuation_index_list:
+            continuation_pitch_list.append(self.continuation_dictionary[index].pitch)
         print(str(node.note.pitch) + str(continuation_pitch_list))
         if node.children_list is not None:
             for child in node.children_list:
