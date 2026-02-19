@@ -68,6 +68,9 @@ class NoteEvent:
         self.duration = duration
         self.delta = delta
 
+def note_event_time(note_event):
+    return note_event.event_time
+
 def note_sequence_to_pitch_sequence(note_sequence):
     pitch_sequence = []
     for note in note_sequence:
