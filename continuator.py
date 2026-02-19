@@ -436,5 +436,5 @@ class PrefixTreeContinuator:                # The main class and corresponding a
 
 # To run it:
 continuator = PrefixTreeContinuator()
-#continuator.run('RealTime')
-continuator.run('Batch')
+# continuator.run('Batch')
+continuator.run('RealTime')
