@@ -285,7 +285,7 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                     self.continuation_sequence.append(next_note)    # Add this continuation note to the list of continuations
                     last_input_note = next_note                     # And continue the generation from this (new) last note
         return self.continuation_sequence
-
+        
     @staticmethod
     def play_midi_note_event(out_port, event, previous_event):
         if not previous_event:
