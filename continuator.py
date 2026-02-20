@@ -375,7 +375,7 @@ class PrefixTreeContinuator:                # The main class and corresponding a
             note_sequence = pitch_sequence_to_note_sequence(pitch_sequence)
             self.train(note_sequence)
             self.display_memory()
-            print('Continuation generated: ' + str(note_sequence_to_pitch_sequence(continuator.generate(note_sequence))))
+            print('Continuation generated: ' + str(note_sequence_to_pitch_sequence(self.generate(note_sequence))))
 
     @staticmethod
     def read_midi_file(midi_file_name):
