@@ -221,6 +221,9 @@ class PrefixTreeContinuator:                # The main class and corresponding a
             if last_input_note.pitch not in self.root_dictionary:   # If there is no matching tree root thus we cannot generate a continuation
                 if _general_default_random_generation_mode:         # If default random generation mode
                     next_note = self.continuation_dictionary[random.randint(1, len(self.continuation_dictionary))]
+                                                                    # self.continuation_dictionary = {1: Note_1, ... , N: Note_N}
+                                                                    # len(dictionary) = number of keys or values = N
+                                                                    # random.randint(1, N) e [1, ... N]
                     note_sequence.append(next_note)                 # Add this continuation note to the list of input notes
                     self.continuation_sequence.append(next_note)    # Add this continuation note to the list of continuations
                     last_input_note = next_note                     # And continue the generation from this (new) last note
