@@ -272,7 +272,10 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                                                                     # or c) current matching has failed,
                                                                     # then, we create a new continuation note
                     current_node_continuation_index_list = current_node.continuation_index_list
-                    next_note = self.continuation_dictionary[current_node_continuation_index_list[random.randint(0, len(current_node_continuation_index_list) -1)]]
+                    next_note = self.continuation_dictionary[current_node_continuation_index_list[random.randint(0, len(current_node_continuation_index_list) - 1)]]
+                                                                    # current_node_continuation_index_list = [index_0, ..., index_N-1]
+                                                                    # len(current_node_continuation_index_list) = N
+                                                                    # random.randint(0, N-1) e [0, ... N-1]
                                                                     # by sorting within current node list of continuations
                                                                     # as there may have several occurrences of the same note,
                                                                     # this implements the probabilities of a Markov model
