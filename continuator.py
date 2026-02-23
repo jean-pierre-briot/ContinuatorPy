@@ -363,7 +363,7 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                     else:
                         continuator_stop_time = None
                 elif continuator_stop_time and time.time() - continuator_stop_time > _continuator_stop_player_stop_threshold:  # If no activity since continuation played and no activity threshold,
-                    print('Continuator has stopped after ' + str(_continuator_stop_player_stop_threshold) + ' seconds of player inactivity')
+                    print('Continuator has stopped after ' + str(_continuator_stop_player_stop_threshold) + ' seconds of player inactivity.')
                     break				                            # finish
                 else:                                               # otherwise, continue the main loop
                     continue
