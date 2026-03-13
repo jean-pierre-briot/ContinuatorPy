@@ -4,8 +4,8 @@
 # -*- coding: Unicode -*-
 
 # Continuator in Python
-# Version 1.3.1
-# Versions/dates: current: 29/01/2026; first: 27/02/2025
+# Version 1.4.1
+# Versions/dates: current: 13/03/2026; first: 27/02/2025
 # Polyphonic
 # Jean-Pierre Briot
 
@@ -15,6 +15,8 @@
 # Pachet, Francois, The Continuator: Musical Interaction with Style, Journal of New Music Research, Volume 32, Issue 3, Pages 333-341, 2003.
 # My thanks to Francois for his continuous feedback.
 
+import argparse
+import ast
 import random
 import time
 import mido
@@ -27,27 +29,85 @@ from metrics import save_played_notes, display_metrics_history
 _min_midi_pitch = 0
 _max_midi_pitch = 128
 _max_midi_velocity = 64
+_long = 5000
+_pseudo_infinite = 100000
+_default_pseudo_max_order = 15
 
-#hyperparameters
-_player_stop_continuator_start_threshold = 2.0  # Silence duration after which Continuator will start train and generate
-_continuator_stop_player_stop_threshold = 15.0  # Silence duration after which Continuator will stop
-_max_continuation_length = 40			    # Maximum number of events (= double number of notes) of a continuation
-_max_played_notes_considered = 20		    # Maximum last number of played notes considered for training
-_pseudo_max_order = 15                      # Maximum Markov oder (and thus generation length) for each generation of continuation note
-_default_generated_note_duration = 0.5	    # Default duration for generated notes (for batch test)
+# call arguments
+parser = argparse.ArgumentParser()
+parser.add_argument('--t', dest='arg_key_transposition_semi_tones', default=0, type=int, help='Transposition - 0 (default) or positive integer number of semitones (above and below)')
+parser.add_argument('--n', dest='arg_key_max_continuation_notes_number', default=-1, type=int, help='Maximum number of notes of a generated continuation, an integer - if negative (default), without maximum/limitation')
+parser.add_argument('--m', dest='arg_key_generation_mode', required=True, type=str, help='Generation mode: RealTime, File, or Batch')
+parser.add_argument('--r', dest='arg_key_first_continuation_default_random_generation_mode', default=True, type=bool, help='Random generation (among continuations) if first note generation fails (default = True)')
+parser.add_argument('--p', dest='arg_key_max_played_notes_considered', default=-1, type=int, help='Maximum last number of (most recent) played notes considered for training, an integer - if negative (default), without maximum/limitation')
+parser.add_argument('--o', dest='arg_key_pseudo_max_order', default=_default_pseudo_max_order, type=int, help='Pseudo maximum Markov order (maximum sequence of notes considered) for each generation of next continuation note')
+
+args = parser.parse_args()
+
+# arguments hyperparameters
+
+_generation_mode = args.arg_key_generation_mode         # Mode of generation
+
+_key_transposition_semi_tones = args.arg_key_transposition_semi_tones
+                                                        # Transposition into N semitones above and N-1 below.
+                                                        # If N = 0, there is no transposition.
+                                                        # If N = 6, this corresponds to a full transposition into the other 11 keys.
+                                                        # If N >> 6, this corresponds to also transposition into octaves.
+                                                        # N will be truncated by the max and min MIDI pitch values, thus N is arbitrary
+
+_max_continuation_notes_number = args.arg_key_max_continuation_notes_number
+                                                        # Maximum number of notes of a generated continuation
+                                                        # Number of events (Note on and Note off) = number of notes * 2
+                                                        # If negative (default), without maximum/limitation.
+
+_first_continuation_default_random_generation_mode = args.arg_key_first_continuation_default_random_generation_mode
+                                                        # Random generation (among continuations) if first note generation fails
+
+_max_played_notes_considered = args.arg_key_max_played_notes_considered
+                                                        # Maximum last number of (most recent) played notes considered for training, an integer.
+                                                        # If negative (default), without maximum/limitation.
+
+_pseudo_max_order = args.arg_key_pseudo_max_order       # Pseudo maximum Markov order (maximum sequence of notes considered) for each generation of next continuation note.
+                                                        # Default = 15
+
+# checking arguments
+
+_generation_mode_set = {'RealTime', 'File', 'Batch'}
+
+_generation_mode_set_string = ''
+for mode_string in _generation_mode_set:
+    _generation_mode_set_string += mode_string + ', '
+_generation_mode_set_string = _generation_mode_set_string[:-2]
+
+if _generation_mode == None:
+    raise RuntimeError('Generation mode (--m) should be specified, within this set: {' + _generation_mode_set_string + '}.')
+elif _generation_mode not in _generation_mode_set:
+    raise RuntimeError('Generation mode (--m): ' + _generation_mode + ' should be an element within this set: {' + _generation_mode_set_string + '}.')
+
+if _key_transposition_semi_tones < 0:
+    raise RuntimeError('Transposition argument (--t): ' + str(_key_transposition_semi_tones) + ' should be a null or positive integer.')
+
+if _max_continuation_notes_number < 0:
+    _max_continuation_notes_number = _long
+
+if _max_played_notes_considered < 0:
+    _max_played_notes_considered = _pseudo_infinite
+
+# hyperparameters
+_general_default_random_generation_mode = False         # Random generation (among continuations) if any note generation fails
+_generation_duration_mode = 'Learnt'                    # 3 possible modes for the durations of the continuation notes:
+                                                        # Learnt: duration of the corresponding matching note learnt,
+                                                        # Played: duration of the notes played
+                                                        # Fixed: fixed (_default_fixed_duration) duration
+
+# constant hyperparameters (a priori not modified)
+_player_stop_continuator_start_threshold = 2.0          # Silence duration after which Continuator will start train and generate
+_player_stop_continuator_stop_threshold = 15.0          # Silence duration after which Continuator will stop
+_default_generated_note_duration = 0.5	                # Default duration for generated notes (for batch test)
 _default_generated_note_velocity = _max_midi_velocity   # Default velocity for generated notes (for batch test)
-_key_transposition_semi_tones = 6			# Transposition into N semitones above and N-1 below. If N = 6, this corresponds to a full transposition into the other 11 keys.
-                                            # If N = 0, there is no transposition.
-                                            # If N >> 6, this corresponds to also transposition into octaves.
-                                            # N will be truncated by the max and min MIDI pitch values, thus N is arbitrary
-_first_continuation_default_random_generation_mode = True   # Random generation (among continuations) if first note generation fails
-_general_default_random_generation_mode = False             # Random generation (among continuations) if any note generation fails
-_generation_duration_mode = 'Learnt'        # 3 possible modes for the durations of the continuation notes:
-                                            # Learnt: duration of the corresponding matching note learnt,
-                                            # Played: duration of the notes played
-                                            # Fixed: fixed (_default_fixed_duration) duration
-_default_fixed_duration = 0.1               # int in case of 'File' (Midi export) mode
+_default_fixed_duration = 0.1                           # int in case of 'File' (Midi export) mode
 
+# classes
 class Note:                                 # Structure of a note
     def __init__(self, pitch, duration, velocity, start_time, delta):
         self.pitch = pitch
@@ -59,14 +119,11 @@ class Note:                                 # Structure of a note
     def match(self, note):      # Check if current note characteristics (pitch, duration and velocity) is matching some other note (only pitch)
         return note.pitch == self.pitch
 
-class NoteEvent:
-    def __init__(self, event_type, pitch, velocity, event_time, duration, delta):
+class NoteEvent(Note):
+    def __init__(self, pitch, duration, velocity, delta, event_type, event_time):
+        super().__init__(pitch, duration, velocity, None, delta)        # start_time is not used
         self.event_type = event_type
-        self.pitch = pitch
-        self.velocity = velocity
         self.event_time = event_time
-        self.duration = duration
-        self.delta = delta
 
 def note_event_time(note_event):
     return note_event.event_time
@@ -101,7 +158,7 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                                             # note_sequence = [(<pitch_1>, <duration_1>, <velocity_#), ... , (<pitch_N>, <duration_N>, <velocity_N>)]
         self.compute_delta(note_sequence)
         self.internal_train_without_key_transpose(note_sequence)    # Train with input sequence
-        if _key_transposition_semi_tones > 0:
+        if _key_transposition_semi_tones:
             note_pitch_sequence = note_sequence_to_pitch_sequence(note_sequence)
             down_iterations_number = min(min(note_pitch_sequence) - _min_midi_pitch, _key_transposition_semi_tones - 1)
             up_iterations_number = min(_max_midi_pitch - max(note_pitch_sequence), _key_transposition_semi_tones)
@@ -216,7 +273,7 @@ class PrefixTreeContinuator:                # The main class and corresponding a
         last_input_note = note_sequence[-1]                         # We start with the last note of the reverse sequence: Note_N
         self.continuation_sequence = []                             # Initialization: Assign continuation list to empty list
         matching_child = None                                       # Declaring that flag
-        for i in range(1, _max_continuation_length):
+        for i in range(1, _max_continuation_notes_number + 1):
             ii = i
             if last_input_note.pitch not in self.root_dictionary:   # If there is no matching tree root thus we cannot generate a continuation
                 if _general_default_random_generation_mode:         # If default random generation mode
@@ -225,6 +282,7 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                                                                     # len(dictionary) = number of keys or values = N
                                                                     # random.randint(1, N) e [1, ... N]
                     note_sequence.append(next_note)                 # Add this continuation note to the list of input notes
+                                                                    # BUG: as we add a note (on front) to the input sequence, we do not follow the max number of notes to be generated
                     self.continuation_sequence.append(next_note)    # Add this continuation note to the list of continuations
                     last_input_note = next_note                     # And continue the generation from this (new) last note
                 elif i == 1 and _first_continuation_default_random_generation_mode:
@@ -311,9 +369,14 @@ class PrefixTreeContinuator:                # The main class and corresponding a
             continuator_stop_time = None
             played_notes = []
             last_event = None
+            has_been_stopped = False
             while True:                                             # Infinite listening loop
                 for event in in_port.iter_pending():
-                    if event.type == 'note_on' and event.velocity > 0:
+                    if event.type == 'note_on' and event.note == 28:        # HACK: Lowest E Yamaha SP-30
+                        print('Continuator has been stopped.')
+                        has_been_stopped = True
+                        break       # exit of the for loop
+                    elif event.type == 'note_on' and event.velocity > 0:
                         if event.note in current_note_on_dict:
                             print('Warning: Note ' + str(note.pitch) + ' has been repeated before being ended')
                             continue
@@ -343,8 +406,11 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                     elif (event.type == 'note_off') or (event.type == 'note_on' and event.velocity == 0):  # An event note_off without previous note_on
                         print('Warning: Event: ' + str(event) + ' with type: ' + str(event.type) + ' and Note: ' + str(event.note) + ' has been finished before being started')
                     # else: Other kind of event (e.g., clock), do nothing
+                #continuator_stop_time = None
                 # Player has stopped playing (at this time)
                 player_stop_duration = time.time() - last_note_end_time  # When there is no more played notes pending events
+                if has_been_stopped:
+                    break       # exit from while loop
                 if self.continuation_sequence:                      # If still continuation note events to be played,
                     current_event = self.continuation_sequence.pop(0)
                     self.play_midi_note_event(out_port=out_port, event=current_event, previous_event=last_event)     # then, play the first one (and remove it)
@@ -354,7 +420,10 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                 elif played_notes and not current_note_on_dict and player_stop_duration > _player_stop_continuator_start_threshold:  # otherwise, if notes have been played, all notes on have been ended, and player has stopped playing
                     save_played_notes(played_notes)
                     self.train(played_notes)                   # then, train from played notes (if any)
-                    self.continuation_sequence = self.generate(played_notes[-_max_played_notes_considered:])
+                    if _max_played_notes_considered:
+                        self.continuation_sequence = self.generate(played_notes[-_max_played_notes_considered:])
+                    else:
+                        self.continuation_sequence = self.generate(played_notes)
                     played_notes = []
                     is_first_note_played = True
                     if not self.continuation_sequence:
@@ -362,11 +431,15 @@ class PrefixTreeContinuator:                # The main class and corresponding a
                         continuator_stop_time = time.time()
                     else:
                         continuator_stop_time = None
-                elif continuator_stop_time and time.time() - continuator_stop_time > _continuator_stop_player_stop_threshold:  # If no activity since continuation played and no activity threshold,
-                    print('Continuator has stopped after ' + str(_continuator_stop_player_stop_threshold) + ' seconds of player inactivity.')
-                    break				                            # finish
-                else:                                               # otherwise, continue the main loop
-                    continue
+                elif continuator_stop_time and time.time() - continuator_stop_time > _player_stop_continuator_stop_threshold:  # If no activity since continuation played and no activity threshold,
+                    print('Continuator has stopped after ' + str(_player_stop_continuator_stop_threshold) + ' seconds of player inactivity.')
+                    break                                       # exit from while loop	and finish
+                elif continuator_stop_time == None:
+                    continuator_stop_time = time.time()
+                else:
+                    None
+                time.sleep(0.001)
+                continue
 
     def play_all_pending_note_off_events(self, out_port, event_sequence):
         if event_sequence:
@@ -406,16 +479,17 @@ class PrefixTreeContinuator:                # The main class and corresponding a
 
     @staticmethod
     def write_midi_file(midi_file_name, note_sequence):
-            midi_file = mido.MidiFile()
-            track = MidiTrack()
-            midi_file.tracks.append(track)
-            for note in note_sequence:
-                track.append(Message(type='note_on', time=0, note=note.pitch, velocity=note.velocity))
-                track.append(Message(type='note_off', time=int(note.duration), note=note.pitch, velocity=note.velocity))
-            midi_file.save(midi_file_name)
+        midi_file = mido.MidiFile()
+        track = MidiTrack()
+        midi_file.tracks.append(track)
+        for note in note_sequence:
+            track.append(Message(type='note_on', time=0, note=note.pitch, velocity=note.velocity))
+            track.append(Message(type='note_off', time=int(note.duration), note=note.pitch, velocity=note.velocity))
+        midi_file.save(midi_file_name)
 
     def run(self, mode):
         self.read_memory()
+        print('Running Continuator in mode: ' + mode + '.')
         match mode:
             case 'RealTime':
                 print('MIDI ports available: input: ' + str(mido.get_input_names()) + ' output: ' + str(mido.get_output_names()))  # Display of MIDI ports
@@ -433,14 +507,17 @@ class PrefixTreeContinuator:                # The main class and corresponding a
             case 'File':
                 note_sequence = self.read_midi_file('PrePlayed.mid')
                 self.train(note_sequence)
-                self.continuation_sequence = self.generate(note_sequence[-_max_played_notes_considered:])
+                if _max_played_notes_considered:
+                    self.continuation_sequence = self.generate(played_notes[-_max_played_notes_considered:])
+                else:
+                    self.continuation_sequence = self.generate(played_notes)
                 self.write_midi_file('Continuation.mid', self.continuation_sequence)
             case 'Batch':    # Batch test
-                self.batch_test([[48, 50, 52, 53], [48, 50, 50, 52], [48, 50], [50, 48], [48]])
+#               self.batch_test([[48, 50, 52, 53], [48, 50, 50, 52], [48, 50], [50, 48], [48]])
+                self.batch_test([[48, 50, 51, 52], [48, 50, 50, 51]])
         display_metrics_history()
         self.save_memory()
 
 # To run it:
 continuator = PrefixTreeContinuator()
-# continuator.run('Batch')
-continuator.run('RealTime')
+continuator.run(_generation_mode)

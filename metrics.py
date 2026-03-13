@@ -33,8 +33,8 @@ def kolmogorov_complexity(sequence):
 _saved_played_notes_list = []
 
 _metrics_history = {'length': [], 'pitch_min': [], 'pitch_max': [], 'duration_min': [], 'duration_max': [], 'velocity_min': [], 'velocity_max': [],
-                    'entropy': [], 'chroma_entropy': [], 'complexity': [], 'chroma_complexity': [],'compression_ratio': [], 'chroma': []}
-
+                    'entropy': [], 'chroma_entropy': [], 'complexity': [], 'chroma_complexity': [], 'compression_ratio': [], 'chroma': []}
+                    # 'complexity_per_number_of_notes': []
 
 def note_sequence_to_pitch_sequence(note_sequence):
     pitch_sequence = []
@@ -77,6 +77,7 @@ def compute_metrics(pitch_sequence, duration_sequence, velocity_sequence):
     _metrics_history['chroma_entropy'].append(chroma_entropy)
     _metrics_history['complexity'].append(complexity)
     _metrics_history['chroma_complexity'].append(chroma_complexity)
+#    _metrics_history['complexity_per_number_of_notes'].append(complexity / len(pitch_sequence))
     _metrics_history['compression_ratio'].append(compression_ratio)
     _metrics_history['chroma'].append(chroma_stats)
 
@@ -101,31 +102,26 @@ def display_metrics_history():
     print('Starting computing metrics')
     for note_sequence in _saved_played_notes_list:
         compute_metrics(note_sequence_to_pitch_sequence(note_sequence), note_sequence_to_duration_sequence(note_sequence), note_sequence_to_velocity_sequence(note_sequence))
-    x_list = []
-    for i in range(1, len(_metrics_history['length']) + 1):
-        x_list.append([i])
+    x_list = list(range(1, len(_metrics_history['length']) + 1))
     fig, (ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9) = plt.subplots(1, 9)
-    ax1.plot(x_list, _metrics_history['length'], color='green')
+    ax1.bar(x_list, _metrics_history['length'], color='green')
     ax1.set_title('Number\nof Notes', color='green')
     ax1.tick_params(axis='x')
-    ax2.plot(x_list, _metrics_history['pitch_min'], color='blue')
-    ax2.plot(x_list, _metrics_history['pitch_max'], color='blue')
+    ax2.bar(x_list, _metrics_history['pitch_max'], bottom=_metrics_history['pitch_min'], color='blue')
     ax2.set_title('Notes\nRange', color='blue')
-    ax3.plot(x_list, _metrics_history['duration_min'], color='magenta')
-    ax3.plot(x_list, _metrics_history['duration_max'], color='magenta')
+    ax3.bar(x_list, _metrics_history['duration_max'], bottom=_metrics_history['duration_min'], color='magenta')
     ax3.set_title('Duration\nRange', color='magenta')
-    ax4.plot(x_list, _metrics_history['velocity_min'], color='cyan')
-    ax4.plot(x_list, _metrics_history['velocity_max'], color='cyan')
+    ax4.bar(x_list, _metrics_history['velocity_max'], bottom=_metrics_history['velocity_min'], color='cyan')
     ax4.set_title('Velocity\nRange', color='cyan')
-    ax5.plot(x_list, _metrics_history['entropy'], color='red')
+    ax5.bar(x_list, _metrics_history['entropy'], color='red')
     ax5.set_title('Notes\nEntropy', color='red')
-    ax6.plot(x_list, _metrics_history['chroma_entropy'], color='orange')
+    ax6.bar(x_list, _metrics_history['chroma_entropy'], color='orange')
     ax6.set_title('Chroma\nEntropy', color='orange')
-    ax7.plot(x_list, _metrics_history['complexity'], color='black')
+    ax7.bar(x_list, _metrics_history['complexity'], color='black')
     ax7.set_title('Notes\nComplexity', color='black')
-    ax8.plot(x_list, _metrics_history['chroma_complexity'], color='brown')
+    ax8.bar(x_list, _metrics_history['chroma_complexity'], color='brown')
     ax8.set_title('Chroma\nComplexity', color='brown')
-    ax9.plot(x_list, _metrics_history['compression_ratio'], color='grey')
+    ax9.bar(x_list, _metrics_history['compression_ratio'], color='grey')
     ax9.set_title('Notes\nCompression Rate', color='grey')
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
