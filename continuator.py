@@ -6,7 +6,7 @@
 # Continuator in Python
 # Version 1.4.1
 # Versions/dates: current: 13/03/2026; first: 27/02/2025
-# Polyphonic
+# Polyphonic, Command arguments
 # Jean-Pierre Briot
 
 # This is a reimplementation in Python of the Continuator from Francois Pachet.
@@ -39,8 +39,8 @@ parser.add_argument('--t', dest='arg_key_transposition_semi_tones', default=0, t
 parser.add_argument('--n', dest='arg_key_max_continuation_notes_number', default=-1, type=int, help='Maximum number of notes of a generated continuation, an integer - if negative (default), without maximum/limitation')
 parser.add_argument('--m', dest='arg_key_generation_mode', required=True, type=str, help='Generation mode: RealTime, File, or Batch')
 parser.add_argument('--r', dest='arg_key_first_continuation_default_random_generation_mode', default=True, type=bool, help='Random generation (among continuations) if first note generation fails (default = True)')
-parser.add_argument('--p', dest='arg_key_max_played_notes_considered', default=-1, type=int, help='Maximum last number of (most recent) played notes considered for training, an integer - if negative (default), without maximum/limitation')
-parser.add_argument('--o', dest='arg_key_pseudo_max_order', default=_default_pseudo_max_order, type=int, help='Pseudo maximum Markov order (maximum sequence of notes considered) for each generation of next continuation note')
+parser.add_argument('--p', dest='arg_key_max_played_notes_considered', default=-1, type=int, help='Maximum number of (most recent) played notes considered for training, an integer - if negative (default), without maximum/limitation')
+parser.add_argument('--o', dest='arg_key_pseudo_max_order', default=_default_pseudo_max_order, type=int, help='Pseudo Markov maximum order (maximum sequence of notes considered) for each generation of next continuation note')
 
 args = parser.parse_args()
 
