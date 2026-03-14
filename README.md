@@ -47,12 +47,13 @@ Note that there are several hyper-parameters (for configuration), e.g., if the C
 They are defined and commented in the beginning (#hyperparameters) of the file.
 
 In order to ease the setting of important hyperparameters/controls for user, optional arguments have been added to the command python3 continuator.py:
---m : Generation mode: RealTime, File, or Batch
---t : Transposition - 0 (default) or positive integer number of semitones (above and below)
---n : Maximum number of notes of a generated continuation, an integer - if negative (default), without maximum/limitation
---r : Random generation (among continuations) if first note generation fails (default = True)
---p : Maximum number of (most recent) played notes considered for training, an integer - if negative (default), without maximum/limitation
---o : Pseudo Markov maximum order (maximum sequence of notes considered) for each generation of next continuation note
+
+    --m : Generation mode: RealTime, File, or Batch
+    --t : Transposition - 0 (default) or positive integer number of semitones (above and below)
+    --n : Maximum number of notes of a generated continuation, an integer - if negative (default), without maximum/limitation
+    --r : Random generation (among continuations) if first note generation fails (default = True)
+    --p : Maximum number of (most recent) played notes considered for training, an integer - if negative (default), without maximum/limitation
+    --o : Pseudo Markov maximum order (maximum sequence of notes considered) for each generation of next continuation note
 
 Ex :
 
