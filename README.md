@@ -58,6 +58,10 @@ Ex :
 
     python3 continuator.py --m RealTime --n 20 --t 6
 
+Since early April 2026, there is some JavaScript version ContinuatorJS (still in development, but already operational).
+Please see: https://github.com/jean-pierre-briot/ContinuatorJS
+and runnable via https://perso.lip6.fr/Jean-Pierre.Briot/infomusic/continuator.html
+
 Please enjoy and any feedback welcome!
 
 jean-pierre
