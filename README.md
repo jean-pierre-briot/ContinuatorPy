@@ -50,10 +50,13 @@ In order to ease the setting of important hyperparameters/controls for user, opt
 
     --m : Generation mode: RealTime, File, or Batch
     --t : Transposition - 0 (default) or positive integer number of semitones (above and below)
-    --n : Maximum number of notes of a generated continuation, an integer - if negative (default), without maximum/limitation
+    --n : Maximum number of notes of a generated continuation, an integer - if negative (default),
+            without maximum/limitation
     --r : Random generation (among continuations) if first note generation fails (default = True)
-    --p : Maximum number of (most recent) played notes considered for training, an integer - if negative (default), without maximum/limitation
-    --o : Pseudo Markov maximum order (maximum sequence of notes considered) for each generation of next continuation note
+    --p : Maximum number of (most recent) played notes considered for training, an integer
+            - if negative (default), without maximum/limitation
+    --o : Pseudo Markov maximum order (maximum sequence of notes considered) for each generation
+            of next continuation note
 
 Ex :
 
